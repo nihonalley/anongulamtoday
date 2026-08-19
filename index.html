@@ -16,15 +16,8 @@
 
   <title>Anong Ulam Today?</title>
 
-  <link
-    rel="stylesheet"
-    href="/css/master.css"
-  >
-
-  <link
-    rel="stylesheet"
-    href="/css/responsive.css"
-  >
+  <link rel="stylesheet" href="/css/master.css">
+  <link rel="stylesheet" href="/css/responsive.css">
 </head>
 
 <body>
@@ -34,7 +27,6 @@
   ========================== -->
 
   <header class="site-header">
-
     <div class="container site-header__inner">
 
       <button
@@ -46,14 +38,12 @@
         ☰
       </button>
 
-
       <a
         class="site-title"
         href="/"
       >
-        Anong Ulam Today?
+        Anong <span>Ulam</span> Today?
       </a>
-
 
       <button
         class="icon-button"
@@ -65,9 +55,7 @@
       </button>
 
     </div>
-
   </header>
-
 
 
   <!-- =========================
@@ -87,45 +75,61 @@
 
         <div class="hero__content">
 
-          <div class="hero__text">
+          <div class="hero__copy">
 
             <h1 class="hero__title">
-              Anong Ulam Today?
+              Anong
+              <span>Ulam</span>
+              Today?
             </h1>
 
             <p class="hero__subtitle">
-              Let’s see what we can cook!
+              Let’s cook something delicious!
             </p>
-
-
-            <button
-              class="btn btn-surprise"
-              id="surpriseButton"
-              type="button"
-            >
-              <span aria-hidden="true">
-                🎲
-              </span>
-
-              <span>
-                Surprise Me!
-              </span>
-            </button>
 
           </div>
 
 
           <div
-            class="hero__chef"
+            class="hero__illustration"
             aria-hidden="true"
           >
-            👨‍🍳
+
+            <div class="hero-food hero-food--pot">
+              🍲
+            </div>
+
+            <div class="hero-food hero-food--tomato">
+              🍅
+            </div>
+
+            <div class="hero-food hero-food--carrot">
+              🥕
+            </div>
+
           </div>
+
+
+          <button
+            class="btn btn-surprise"
+            id="surpriseButton"
+            type="button"
+          >
+
+            <span class="btn-surprise__icon">
+              🎲
+            </span>
+
+            <span class="btn-surprise__text">
+              <strong>Surprise Me!</strong>
+              <small>Pick a random dish</small>
+            </span>
+
+          </button>
 
         </div>
 
       </section>
-
 
 
       <!-- =========================
@@ -137,15 +141,9 @@
         <div class="section-header">
 
           <div>
-
             <h2 class="section-title">
-              Choose a Cuisine
+              Cuisine
             </h2>
-
-            <p class="section-subtitle">
-              Or let Surprise Me choose for you.
-            </p>
-
           </div>
 
         </div>
@@ -153,220 +151,170 @@
 
         <div class="cuisine-grid">
 
-
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="filipino"
+            data-filter-group="cuisine"
+            data-filter-value="filipino"
           >
-
-            <span class="cuisine-card__icon">
-              🍲
-            </span>
-
-            <span class="cuisine-card__label">
-              Filipino
-            </span>
-
+            <span class="cuisine-card__icon">🌮</span>
+            <span class="cuisine-card__label">Filipino</span>
           </button>
 
 
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="japanese"
+            data-filter-group="cuisine"
+            data-filter-value="japanese"
           >
-
-            <span class="cuisine-card__icon">
-              🍱
-            </span>
-
-            <span class="cuisine-card__label">
-              Japanese
-            </span>
-
+            <span class="cuisine-card__icon">🍣</span>
+            <span class="cuisine-card__label">Japanese</span>
           </button>
 
 
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="korean"
+            data-filter-group="cuisine"
+            data-filter-value="korean"
           >
-
-            <span class="cuisine-card__icon">
-              🍚
-            </span>
-
-            <span class="cuisine-card__label">
-              Korean
-            </span>
-
+            <span class="cuisine-card__icon">🍲</span>
+            <span class="cuisine-card__label">Korean</span>
           </button>
 
 
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="chinese"
+            data-filter-group="cuisine"
+            data-filter-value="chinese"
           >
-
-            <span class="cuisine-card__icon">
-              🥡
-            </span>
-
-            <span class="cuisine-card__label">
-              Chinese
-            </span>
-
+            <span class="cuisine-card__icon">🍜</span>
+            <span class="cuisine-card__label">Chinese</span>
           </button>
 
 
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="vietnamese"
+            data-filter-group="cuisine"
+            data-filter-value="vietnamese"
           >
-
-            <span class="cuisine-card__icon">
-              🍜
-            </span>
-
-            <span class="cuisine-card__label">
-              Vietnamese
-            </span>
-
+            <span class="cuisine-card__icon">🥣</span>
+            <span class="cuisine-card__label">Vietnamese</span>
           </button>
 
 
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="european"
+            data-filter-group="cuisine"
+            data-filter-value="european"
           >
-
-            <span class="cuisine-card__icon">
-              🥘
-            </span>
-
-            <span class="cuisine-card__label">
-              European
-            </span>
-
+            <span class="cuisine-card__icon">🍕</span>
+            <span class="cuisine-card__label">European</span>
           </button>
 
 
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="american"
+            data-filter-group="cuisine"
+            data-filter-value="american"
           >
-
-            <span class="cuisine-card__icon">
-              🍔
-            </span>
-
-            <span class="cuisine-card__label">
-              American
-            </span>
-
+            <span class="cuisine-card__icon">🍔</span>
+            <span class="cuisine-card__label">American</span>
           </button>
 
 
           <button
             class="cuisine-card"
             type="button"
-            data-cuisine="mediterranean"
+            data-filter-group="cuisine"
+            data-filter-value="mediterranean"
           >
-
-            <span class="cuisine-card__icon">
-              🫒
-            </span>
-
-            <span class="cuisine-card__label">
-              Mediterranean
-            </span>
-
+            <span class="cuisine-card__icon">🥗</span>
+            <span class="cuisine-card__label">Mediterranean</span>
           </button>
-
 
         </div>
 
       </section>
 
 
-
       <!-- =========================
-           ADVANCED FILTERS
+           QUICK ACTIONS
       ========================== -->
 
-      <section class="section advanced-section">
+      <section class="section quick-actions">
+
+
+        <!-- ADVANCED SEARCH -->
 
         <button
-          class="advanced-toggle"
+          class="quick-card quick-card--filters"
           id="advancedToggle"
           type="button"
           aria-expanded="false"
         >
 
-          <span>
-            ⚙️ Advanced Search
+          <span class="quick-card__icon">
+            ⚙️
           </span>
 
-          <span
-            class="advanced-toggle__arrow"
-            aria-hidden="true"
-          >
-            ▼
+          <span class="quick-card__content">
+            <strong>Advanced Search</strong>
+            <small>Cooking style, diet, time & more</small>
+          </span>
+
+          <span class="quick-card__arrow">
+            ›
           </span>
 
         </button>
 
 
-        <div
-          class="advanced-panel"
-          id="advancedPanel"
-          hidden
-        >
-
-          <p class="advanced-placeholder">
-            Filters will go here next.
-          </p>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =========================
-           PANTRY SUMMARY
-      ========================== -->
-
-      <section class="section">
+        <!-- PANTRY -->
 
         <a
-          class="summary-card"
+          class="quick-card quick-card--pantry"
+          href="/pantry.html"
+        >
+
+          <span class="quick-card__icon">
+            🧺
+          </span>
+
+          <span class="quick-card__content">
+            <strong>Your Pantry</strong>
+            <small>You have 24 ingredients</small>
+          </span>
+
+          <span class="quick-card__arrow">
+            ›
+          </span>
+
+        </a>
+
+
+        <!-- SHOPPING -->
+
+        <a
+          class="quick-card quick-card--shopping"
           href="#"
         >
 
-          <div class="summary-card__icon">
-            🧺
-          </div>
+          <span class="quick-card__icon">
+            🛒
+          </span>
 
-          <div class="summary-card__content">
+          <span class="quick-card__content">
+            <strong>Shopping List</strong>
+            <small>4 items</small>
+          </span>
 
-            <strong>
-              Your Pantry
-            </strong>
-
-            <span>
-              No ingredients added yet
-            </span>
-
-          </div>
-
-          <span class="summary-card__arrow">
+          <span class="quick-card__arrow">
             ›
           </span>
 
@@ -374,6 +322,351 @@
 
       </section>
 
+
+      <!-- =========================
+           ADVANCED SEARCH
+      ========================== -->
+
+      <section
+        class="advanced-panel"
+        id="advancedPanel"
+        hidden
+      >
+
+        <div class="advanced-panel__header">
+
+          <div>
+
+            <h2 class="section-title">
+              Advanced Search
+            </h2>
+
+            <p class="section-subtitle">
+              Choose one or more filters.
+            </p>
+
+          </div>
+
+
+          <button
+            class="filter-reset"
+            id="resetFiltersButton"
+            type="button"
+          >
+            Reset
+          </button>
+
+        </div>
+
+
+        <div class="filter-groups">
+
+
+          <!-- =========================
+               COOKING STYLE
+          ========================== -->
+
+          <div class="filter-group">
+
+            <h3 class="filter-group__title">
+              Cooking Style
+            </h3>
+
+
+            <div class="filter-options">
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="fried"
+              >
+                Fried
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="stew"
+              >
+                Stew
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="soup"
+              >
+                Soup
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="grilled"
+              >
+                Grilled
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="baked"
+              >
+                Baked
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="stir-fry"
+              >
+                Stir-fry
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="steamed"
+              >
+                Steamed
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="cookingStyle"
+                data-filter-value="air-fryer"
+              >
+                Air Fryer
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- =========================
+               DIET
+          ========================== -->
+
+          <div class="filter-group">
+
+            <h3 class="filter-group__title">
+              Diet
+            </h3>
+
+
+            <div class="filter-options">
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="diet"
+                data-filter-value="kid-friendly"
+              >
+                Kid-friendly
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="diet"
+                data-filter-value="healthy"
+              >
+                Healthy
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="diet"
+                data-filter-value="dairy-free"
+              >
+                Dairy-free
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="diet"
+                data-filter-value="gluten-free"
+              >
+                Gluten-free
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="diet"
+                data-filter-value="vegetarian"
+              >
+                Vegetarian
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="diet"
+                data-filter-value="spicy"
+              >
+                Spicy 🌶️
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- =========================
+               TIME
+          ========================== -->
+
+          <div class="filter-group">
+
+            <h3 class="filter-group__title">
+              Time
+            </h3>
+
+
+            <div class="filter-options">
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="time"
+                data-filter-value="15"
+              >
+                ≤ 15 mins
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="time"
+                data-filter-value="30"
+              >
+                ≤ 30 mins
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="time"
+                data-filter-value="45"
+              >
+                ≤ 45 mins
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="time"
+                data-filter-value="60"
+              >
+                ≤ 60 mins
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- =========================
+               SERVINGS
+          ========================== -->
+
+          <div class="filter-group">
+
+            <h3 class="filter-group__title">
+              Servings
+            </h3>
+
+
+            <div class="filter-options">
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="servings"
+                data-filter-value="one"
+              >
+                One
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="servings"
+                data-filter-value="couple"
+              >
+                Couple
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="servings"
+                data-filter-value="family"
+              >
+                Family
+              </button>
+
+              <button
+                class="filter-chip"
+                type="button"
+                data-filter-group="servings"
+                data-filter-value="party"
+              >
+                Party
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =========================
+             ACTIVE FILTERS
+        ========================== -->
+
+        <div class="active-filters">
+
+          <div class="active-filters__top">
+
+            <strong>
+              Active Filters
+            </strong>
+
+            <span id="filterCount">
+              0 selected
+            </span>
+
+          </div>
+
+
+          <div
+            class="active-filter-list"
+            id="activeFilterList"
+          >
+
+            <span class="active-filter-empty">
+              No filters selected.
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
 
 
       <!-- =========================
@@ -385,141 +678,202 @@
         <div class="section-header">
 
           <div>
-
             <h2 class="section-title">
-              Best Matches
+              Best Matches For You
             </h2>
-
-            <p class="section-subtitle">
-              Recipes you can make with what you have.
-            </p>
-
           </div>
+
+          <a
+            class="text-link"
+            href="#"
+          >
+            See all
+          </a>
 
         </div>
 
 
         <div class="recipe-scroll">
 
-          <article class="recipe-card">
 
-            <div class="recipe-card__image-placeholder">
-              🍗
-            </div>
-
-            <div class="recipe-card__body">
-
-              <div class="recipe-card__top">
-
-                <span class="recipe-card__tag">
-                  Filipino
-                </span>
-
-                <button
-                  class="recipe-card__favorite"
-                  type="button"
-                  aria-label="Add to favorites"
-                >
-                  ♡
-                </button>
-
-              </div>
-
-              <h3 class="recipe-card__title">
-                Sample Recipe
-              </h3>
-
-              <p class="recipe-card__meta">
-                30 min · Easy
-              </p>
-
-            </div>
-
-          </article>
-
+          <!-- CHICKEN ADOBO -->
 
           <article class="recipe-card">
 
-            <div class="recipe-card__image-placeholder">
-              🍲
-            </div>
-
-            <div class="recipe-card__body">
-
-              <div class="recipe-card__top">
-
-                <span class="recipe-card__tag">
-                  Japanese
-                </span>
-
-                <button
-                  class="recipe-card__favorite"
-                  type="button"
-                  aria-label="Add to favorites"
-                >
-                  ♡
-                </button>
-
-              </div>
-
-              <h3 class="recipe-card__title">
-                Sample Recipe
-              </h3>
-
-              <p class="recipe-card__meta">
-                25 min · Easy
-              </p>
-
-            </div>
-
-          </article>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =========================
-           SHOPPING PREVIEW
-      ========================== -->
-
-      <section class="section">
-
-        <div class="shopping-preview card">
-
-          <div class="section-header">
-
-            <div>
-
-              <h2 class="section-title">
-                🛒 Shopping List
-              </h2>
-
-              <p class="section-subtitle">
-                Nothing on your list yet.
-              </p>
-
-            </div>
-
-            <a
-              class="text-link"
-              href="#"
+            <div
+              class="
+                recipe-card__image
+                recipe-card__image--one
+              "
             >
-              View All
-            </a>
+              🍗
 
-          </div>
+              <button
+                class="recipe-card__favorite"
+                type="button"
+                aria-label="Add Chicken Adobo to favorites"
+              >
+                ♡
+              </button>
+
+            </div>
+
+
+            <div class="recipe-card__body">
+
+              <h3 class="recipe-card__title">
+                Chicken Adobo
+              </h3>
+
+              <div class="recipe-card__meta">
+                <span>⏱ 30 mins</span>
+                <span>Easy</span>
+              </div>
+
+              <span class="recipe-card__tag">
+                Filipino
+              </span>
+
+            </div>
+
+          </article>
+
+
+          <!-- BEEF STIR FRY -->
+
+          <article class="recipe-card">
+
+            <div
+              class="
+                recipe-card__image
+                recipe-card__image--two
+              "
+            >
+              🥘
+
+              <button
+                class="recipe-card__favorite"
+                type="button"
+                aria-label="Add Beef Stir Fry to favorites"
+              >
+                ♡
+              </button>
+
+            </div>
+
+
+            <div class="recipe-card__body">
+
+              <h3 class="recipe-card__title">
+                Beef Stir Fry
+              </h3>
+
+              <div class="recipe-card__meta">
+                <span>⏱ 25 mins</span>
+                <span>Easy</span>
+              </div>
+
+              <span class="recipe-card__tag">
+                Chinese
+              </span>
+
+            </div>
+
+          </article>
+
+
+          <!-- MISO SOUP -->
+
+          <article class="recipe-card">
+
+            <div
+              class="
+                recipe-card__image
+                recipe-card__image--three
+              "
+            >
+              🍲
+
+              <button
+                class="recipe-card__favorite"
+                type="button"
+                aria-label="Add Miso Soup to favorites"
+              >
+                ♡
+              </button>
+
+            </div>
+
+
+            <div class="recipe-card__body">
+
+              <h3 class="recipe-card__title">
+                Miso Soup
+              </h3>
+
+              <div class="recipe-card__meta">
+                <span>⏱ 15 mins</span>
+                <span>Easy</span>
+              </div>
+
+              <span class="recipe-card__tag">
+                Japanese
+              </span>
+
+            </div>
+
+          </article>
+
+
+          <!-- PORK SINIGANG -->
+
+          <article class="recipe-card">
+
+            <div
+              class="
+                recipe-card__image
+                recipe-card__image--four
+              "
+            >
+              🥣
+
+              <button
+                class="recipe-card__favorite"
+                type="button"
+                aria-label="Add Pork Sinigang to favorites"
+              >
+                ♡
+              </button>
+
+            </div>
+
+
+            <div class="recipe-card__body">
+
+              <h3 class="recipe-card__title">
+                Pork Sinigang
+              </h3>
+
+              <div class="recipe-card__meta">
+                <span>⏱ 35 mins</span>
+                <span>Medium</span>
+              </div>
+
+              <span class="recipe-card__tag">
+                Filipino
+              </span>
+
+            </div>
+
+          </article>
 
         </div>
 
       </section>
-
 
     </div>
 
   </main>
-
 
 
   <!-- =========================
@@ -528,11 +882,12 @@
 
   <nav class="bottom-nav">
 
+    <!-- ULAM -->
+
     <a
       class="bottom-nav__item is-active"
       href="/"
     >
-
       <span class="bottom-nav__icon">
         🍳
       </span>
@@ -540,15 +895,15 @@
       <span>
         Ulam
       </span>
-
     </a>
 
 
+    <!-- PANTRY -->
+
     <a
       class="bottom-nav__item"
-      href="#"
+      href="/pantry.html"
     >
-
       <span class="bottom-nav__icon">
         🧺
       </span>
@@ -556,15 +911,15 @@
       <span>
         Pantry
       </span>
-
     </a>
 
+
+    <!-- SHOPPING -->
 
     <a
       class="bottom-nav__item"
       href="#"
     >
-
       <span class="bottom-nav__icon">
         🛒
       </span>
@@ -572,12 +927,14 @@
       <span>
         Shopping
       </span>
-
     </a>
 
   </nav>
 
 
+  <!-- =========================
+       JAVASCRIPT
+  ========================== -->
 
   <script
     type="module"
