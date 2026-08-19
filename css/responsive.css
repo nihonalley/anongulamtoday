@@ -1,0 +1,163 @@
+/* =========================
+   RESPONSIVE STYLES
+========================= */
+
+
+/* Tablet and larger */
+@media (min-width: 768px) {
+
+  .container {
+    width: min(100% - 48px, var(--container-width));
+  }
+
+  .site-header__inner {
+    min-height: 68px;
+  }
+
+  .hero {
+    padding-block: var(--space-7);
+  }
+
+  .hero__content {
+    padding: var(--space-6);
+    gap: var(--space-6);
+  }
+
+  .hero__title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .hero__chef {
+    font-size: clamp(6rem, 14vw, 9rem);
+  }
+
+  .btn-surprise {
+    min-width: 200px;
+  }
+
+}
+
+
+/* Desktop */
+@media (min-width: 900px) {
+
+  .bottom-nav {
+    display: none;
+  }
+
+  .site-main {
+    padding-bottom: 0;
+  }
+
+  .site-header__inner {
+    min-height: 72px;
+  }
+
+  .hero {
+    padding-block: var(--space-7);
+  }
+
+  .hero__content {
+    min-height: 300px;
+    padding: var(--space-7);
+  }
+
+  .hero__text {
+    max-width: 650px;
+  }
+
+  .btn-surprise {
+    min-width: 220px;
+  }
+
+}
+
+
+/* Large Desktop */
+@media (min-width: 1200px) {
+
+  .hero__content {
+    min-height: 340px;
+  }
+
+  .hero__title {
+    font-size: 4rem;
+  }
+
+  .hero__chef {
+    font-size: 9rem;
+  }
+
+}
+
+
+/* Small mobile */
+@media (max-width: 520px) {
+
+  .container {
+    width: min(100% - 24px, var(--container-width));
+  }
+
+  .site-header__inner {
+    min-height: 60px;
+  }
+
+  .site-title {
+    font-size: 1rem;
+  }
+
+  .icon-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .hero {
+    padding-block: var(--space-5);
+  }
+
+  .hero__content {
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .hero__title {
+    font-size: clamp(1.8rem, 9vw, 2.6rem);
+  }
+
+  .hero__subtitle {
+    margin-bottom: var(--space-4);
+  }
+
+  .hero__chef {
+    font-size: clamp(4rem, 20vw, 6rem);
+  }
+
+  .btn-surprise {
+    width: 100%;
+    min-height: 56px;
+  }
+
+}
+
+
+/* Extra-small phones */
+@media (max-width: 380px) {
+
+  .hero__content {
+    flex-direction: column-reverse;
+    text-align: center;
+  }
+
+  .hero__text {
+    width: 100%;
+  }
+
+  .hero__chef {
+    font-size: 4.5rem;
+  }
+
+  .hero__title {
+    font-size: 2rem;
+  }
+
+}

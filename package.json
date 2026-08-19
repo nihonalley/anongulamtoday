@@ -1,0 +1,24 @@
+{
+  "name": "anongulamtoday",
+  "version": "1.0.0",
+  "description": "A simple pantry-based meal finder and shopping list",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nihonalley/anongulamtoday.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nihonalley/anongulamtoday/issues"
+  },
+  "homepage": "https://github.com/nihonalley/anongulamtoday#readme",
+  "devDependencies": {
+    "vite": "^8.2.1"
+  }
+}
