@@ -1,6 +1,9 @@
-const STORAGE_KEYS = {
-  pantry: "anongUlam.pantry"
-};
+import {
+  STORAGE_KEYS,
+  loadList,
+  saveList,
+  addToList
+} from "./storage.js";
 
 
 const CATEGORY_META = {
@@ -47,6 +50,11 @@ const CATEGORY_META = {
   frozen: {
     label: "Frozen",
     icon: "❄️"
+  },
+
+  other: {
+    label: "Other",
+    icon: "🍽️"
   }
 };
 
@@ -54,48 +62,39 @@ const CATEGORY_META = {
 const state = {
   ingredients: [],
   pantry: new Set(),
+  shopping: new Set(),
   search: "",
   availableOnly: false
 };
-
-
-function loadStoredPantry() {
-  try {
-    const stored =
-      JSON.parse(
-        localStorage.getItem(
-          STORAGE_KEYS.pantry
-        )
-      );
-
-    if (
-      Array.isArray(stored)
-    ) {
-      state.pantry =
-        new Set(stored);
-    }
-
-  } catch {
-    state.pantry =
-      new Set();
-  }
-}
-
-
-function savePantry() {
-  localStorage.setItem(
-    STORAGE_KEYS.pantry,
-    JSON.stringify(
-      [...state.pantry]
-    )
-  );
-}
 
 
 function normalizeText(value = "") {
   return String(value)
     .trim()
     .toLowerCase();
+}
+
+
+function loadStoredState() {
+  state.pantry = new Set(
+    loadList(
+      STORAGE_KEYS.pantry
+    )
+  );
+
+  state.shopping = new Set(
+    loadList(
+      STORAGE_KEYS.shopping
+    )
+  );
+}
+
+
+function savePantry() {
+  saveList(
+    STORAGE_KEYS.pantry,
+    state.pantry
+  );
 }
 
 
@@ -160,7 +159,8 @@ function groupIngredients() {
       (ingredient) => {
 
         const category =
-          ingredient.category;
+          ingredient.category
+          || "other";
 
         groups[category] ??= [];
 
@@ -179,6 +179,11 @@ function createIngredientRow(
 ) {
   const isAvailable =
     state.pantry.has(
+      ingredient.id
+    );
+
+  const isShopping =
+    state.shopping.has(
       ingredient.id
     );
 
@@ -201,7 +206,9 @@ function createIngredientRow(
           : ""}
       >
 
-      <span class="ingredient-row__name">
+      <span
+        class="ingredient-row__name"
+      >
         ${ingredient.name}
       </span>
 
@@ -209,8 +216,13 @@ function createIngredientRow(
         class="ingredient-row__shopping"
         type="button"
         data-add-shopping="${ingredient.id}"
+        ${isShopping
+          ? "disabled"
+          : ""}
       >
-        + Shopping
+        ${isShopping
+          ? "Added ✓"
+          : "+ Shopping"}
       </button>
 
     </label>
@@ -224,10 +236,7 @@ function createCategorySection(
 ) {
   const meta =
     CATEGORY_META[category]
-    ?? {
-      label: category,
-      icon: "🍽️"
-    };
+    ?? CATEGORY_META.other;
 
   return `
     <section
@@ -242,7 +251,10 @@ function createCategorySection(
         aria-expanded="true"
       >
 
-        <span class="pantry-category__title">
+        <span
+          class="pantry-category__title"
+        >
+
           <span>
             ${meta.icon}
           </span>
@@ -250,16 +262,22 @@ function createCategorySection(
           <strong>
             ${meta.label}
           </strong>
+
         </span>
 
-        <span class="pantry-category__arrow">
+
+        <span
+          class="pantry-category__arrow"
+        >
           ▼
         </span>
 
       </button>
 
 
-      <div class="pantry-category__items">
+      <div
+        class="pantry-category__items"
+      >
 
         ${ingredients
           .map(
@@ -284,18 +302,25 @@ function renderPantry() {
     return;
   }
 
+
   const groups =
     groupIngredients();
 
   const entries =
     Object.entries(groups);
 
+
   if (
     entries.length === 0
   ) {
     container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state__icon">
+      <div
+        class="empty-state"
+      >
+
+        <div
+          class="empty-state__icon"
+        >
           🔎
         </div>
 
@@ -306,11 +331,13 @@ function renderPantry() {
         <span>
           Try another search.
         </span>
+
       </div>
     `;
 
     return;
   }
+
 
   container.innerHTML =
     entries
@@ -330,16 +357,44 @@ function toggleIngredient(
   checked
 ) {
   if (checked) {
+
     state.pantry.add(
       ingredientId
     );
+
   } else {
+
     state.pantry.delete(
       ingredientId
     );
+
   }
 
   savePantry();
+
+  renderPantry();
+}
+
+
+function addIngredientToShopping(
+  ingredientId
+) {
+  if (
+    state.shopping.has(
+      ingredientId
+    )
+  ) {
+    return;
+  }
+
+  state.shopping.add(
+    ingredientId
+  );
+
+  addToList(
+    STORAGE_KEYS.shopping,
+    ingredientId
+  );
 
   renderPantry();
 }
@@ -377,22 +432,11 @@ function toggleCategory(
 }
 
 
-function setupEvents() {
+function setupSearch() {
   const search =
     document.querySelector(
       "#pantrySearch"
     );
-
-  const availableOnly =
-    document.querySelector(
-      "#showAvailableOnly"
-    );
-
-  const pantryList =
-    document.querySelector(
-      "#pantryList"
-    );
-
 
   search?.addEventListener(
     "input",
@@ -405,7 +449,14 @@ function setupEvents() {
 
     }
   );
+}
 
+
+function setupAvailableOnly() {
+  const availableOnly =
+    document.querySelector(
+      "#showAvailableOnly"
+    );
 
   availableOnly?.addEventListener(
     "change",
@@ -418,6 +469,14 @@ function setupEvents() {
 
     }
   );
+}
+
+
+function setupPantryEvents() {
+  const pantryList =
+    document.querySelector(
+      "#pantryList"
+    );
 
 
   pantryList?.addEventListener(
@@ -472,14 +531,22 @@ function setupEvents() {
       ) {
         event.preventDefault();
 
-        console.log(
-          "Add to shopping:",
+        addIngredientToShopping(
           shoppingButton.dataset.addShopping
         );
       }
 
     }
   );
+}
+
+
+function setupEvents() {
+  setupSearch();
+
+  setupAvailableOnly();
+
+  setupPantryEvents();
 }
 
 
@@ -501,11 +568,12 @@ async function loadIngredients() {
 
 
 async function init() {
-  loadStoredPantry();
+  loadStoredState();
 
   setupEvents();
 
   try {
+
     await loadIngredients();
 
     renderPantry();
@@ -513,6 +581,37 @@ async function init() {
   } catch (error) {
 
     console.error(error);
+
+    const container =
+      document.querySelector(
+        "#pantryList"
+      );
+
+    if (container) {
+
+      container.innerHTML = `
+        <div
+          class="empty-state"
+        >
+
+          <div
+            class="empty-state__icon"
+          >
+            ⚠️
+          </div>
+
+          <strong>
+            Unable to load ingredients
+          </strong>
+
+          <span>
+            Please refresh the page.
+          </span>
+
+        </div>
+      `;
+
+    }
 
   }
 }

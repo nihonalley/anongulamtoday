@@ -1,0 +1,1 @@
+var e=`anongUlam`,t={pantry:`${e}.pantry`,shopping:`${e}.shopping`,favorites:`${e}.favorites`};function n(e){try{let t=JSON.parse(localStorage.getItem(e));return Array.isArray(t)?t:[]}catch{return[]}}function r(e,t){localStorage.setItem(e,JSON.stringify([...t]))}function i(e,t){let i=new Set(n(e));return i.add(t),r(e,i),[...i]}export{r as i,i as n,n as r,t};
