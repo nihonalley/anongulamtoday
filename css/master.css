@@ -3247,3 +3247,199 @@ input:checked
   }
 
 }
+
+/* =========================================================
+   SURPRISE GENERATOR
+   ========================================================= */
+
+.surprise-pantry-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: fit-content;
+  max-width: 100%;
+
+  margin: 12px auto 0;
+  padding: 8px 12px;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.surprise-pantry-option:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+
+.surprise-pantry-option:active {
+  transform: scale(0.98);
+}
+
+
+/* Hide native checkbox */
+
+.surprise-pantry-option input {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+/* Custom checkbox */
+
+.surprise-pantry-option__check {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 22px;
+  height: 22px;
+
+  border: 2px solid currentColor;
+  border-radius: 7px;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  opacity: 0.45;
+
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* Checked */
+
+.surprise-pantry-option
+input:checked
++
+.surprise-pantry-option__check {
+  opacity: 1;
+
+  background: currentColor;
+
+  transform: scale(1.05);
+}
+
+
+.surprise-pantry-option
+input:checked
++
+.surprise-pantry-option__check::after {
+  content: "✓";
+
+  color: white;
+}
+
+
+/* Hide original ✓ so we can recolor it */
+
+.surprise-pantry-option__check {
+  font-size: 0;
+}
+
+
+/* Text */
+
+.surprise-pantry-option__text {
+  display: flex;
+  flex-direction: column;
+
+  text-align: left;
+
+  line-height: 1.2;
+}
+
+
+.surprise-pantry-option__text strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+
+.surprise-pantry-option__text small {
+  margin-top: 2px;
+
+  font-size: 0.72rem;
+
+  opacity: 0.65;
+}
+
+
+/* =========================================================
+   SURPRISE RESULT LABELS
+   ========================================================= */
+
+.recipe-surprise-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  margin-top: 8px;
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+
+.recipe-surprise-mode--full {
+  background: rgba(255, 193, 7, 0.15);
+}
+
+
+.recipe-surprise-mode--pantry {
+  background: rgba(76, 175, 80, 0.14);
+}
+
+
+/* =========================================================
+   PICK AGAIN
+   ========================================================= */
+
+.recipe-pick-again {
+  width: 100%;
+
+  margin-top: 10px;
+  padding: 10px 14px;
+
+  border: 0;
+  border-radius: 12px;
+
+  font: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+
+.recipe-pick-again:hover {
+  opacity: 0.9;
+}
+
+
+.recipe-pick-again:active {
+  transform: scale(0.98);
+}

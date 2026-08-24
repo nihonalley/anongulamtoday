@@ -1823,3 +1823,575 @@ document.addEventListener(
   "DOMContentLoaded",
   init
 );
+
+/* =========================================================
+   SURPRISE GENERATOR V2
+   ========================================================= */
+
+const SURPRISE_HISTORY_LIMIT = 5;
+
+const surpriseGeneratorState = {
+  recentRecipeIds: []
+};
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+function getUsePantryCheckbox() {
+  return document.querySelector(
+    "#usePantryCheckbox"
+  );
+}
+
+
+/* =========================
+   MODE
+========================= */
+
+function isPantrySurpriseEnabled() {
+  return Boolean(
+    getUsePantryCheckbox()?.checked
+  );
+}
+
+
+/* =========================
+   HISTORY
+========================= */
+
+function rememberSurpriseRecipe(
+  recipeId
+) {
+  if (!recipeId) {
+    return;
+  }
+
+
+  surpriseGeneratorState
+    .recentRecipeIds =
+    surpriseGeneratorState
+      .recentRecipeIds
+      .filter(
+        (id) =>
+          id !== recipeId
+      );
+
+
+  surpriseGeneratorState
+    .recentRecipeIds
+    .unshift(
+      recipeId
+    );
+
+
+  surpriseGeneratorState
+    .recentRecipeIds =
+    surpriseGeneratorState
+      .recentRecipeIds
+      .slice(
+        0,
+        SURPRISE_HISTORY_LIMIT
+      );
+}
+
+
+/* =========================
+   REMOVE RECENT PICKS
+========================= */
+
+function removeRecentSurpriseRecipes(
+  recipes
+) {
+  if (
+    !recipes
+    || recipes.length <= 1
+  ) {
+    return recipes ?? [];
+  }
+
+
+  const recentIds =
+    new Set(
+      surpriseGeneratorState
+        .recentRecipeIds
+    );
+
+
+  const freshRecipes =
+    recipes.filter(
+      (recipe) =>
+        !recentIds.has(
+          recipe.id
+        )
+    );
+
+
+  /*
+   * If we've already seen everything,
+   * allow the full pool again.
+   */
+
+  return freshRecipes.length > 0
+    ? freshRecipes
+    : recipes;
+}
+
+
+/* =========================
+   FULL SURPRISE POOL
+========================= */
+
+function getFullSurprisePool() {
+
+  /*
+   * Existing filters still apply.
+   *
+   * Pantry does NOT affect this mode.
+   */
+
+  return getFilteredRecipes();
+}
+
+
+/* =========================
+   PANTRY SURPRISE POOL
+========================= */
+
+function getPantrySurprisePool() {
+
+  const filtered =
+    getFilteredRecipes();
+
+
+  if (filtered.length === 0) {
+    return [];
+  }
+
+
+  /*
+   * No Pantry items:
+   *
+   * We don't block Surprise Me.
+   * We simply fall back to the
+   * filtered recipe library.
+   */
+
+  if (state.pantry.size === 0) {
+    return filtered;
+  }
+
+
+  const ranked =
+    rankRecipesByPantry(
+      filtered,
+      state.pantry
+    );
+
+
+  if (ranked.length === 0) {
+    return [];
+  }
+
+
+  /*
+   * PRIORITY 1:
+   * Recipes that can be cooked now.
+   */
+
+  const readyToCook =
+    ranked.filter(
+      (item) =>
+        item.match.canCook
+    );
+
+
+  if (readyToCook.length > 0) {
+
+    return readyToCook.map(
+      (item) =>
+        item.recipe
+    );
+
+  }
+
+
+  /*
+   * PRIORITY 2:
+   * No complete recipe.
+   *
+   * Find the smallest number of
+   * missing ingredients.
+   */
+
+  const lowestMissingCount =
+    Math.min(
+      ...ranked.map(
+        (item) =>
+          item.match.missingCount
+      )
+    );
+
+
+  /*
+   * Pick randomly among recipes
+   * equally close to being cookable.
+   */
+
+  return ranked
+    .filter(
+      (item) =>
+        item.match.missingCount
+        === lowestMissingCount
+    )
+    .map(
+      (item) =>
+        item.recipe
+    );
+}
+
+
+/* =========================
+   GET SURPRISE POOL
+========================= */
+
+function getSurpriseGeneratorPool() {
+
+  if (
+    isPantrySurpriseEnabled()
+  ) {
+
+    return getPantrySurprisePool();
+
+  }
+
+
+  return getFullSurprisePool();
+}
+
+
+/* =========================
+   GENERATE
+========================= */
+
+function generateSurpriseRecipeV2() {
+
+  const container =
+    getElement(
+      SELECTORS.recipeContainer
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  let recipePool =
+    getSurpriseGeneratorPool();
+
+
+  if (
+    !recipePool
+    || recipePool.length === 0
+  ) {
+
+    container.innerHTML = `
+      <div class="recipe-empty-state">
+
+        <span>
+          🍳
+        </span>
+
+        <strong>
+          No recipe matches right now.
+        </strong>
+
+        <small>
+          Try removing some filters.
+        </small>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  recipePool =
+    removeRecentSurpriseRecipes(
+      recipePool
+    );
+
+
+  const recipe =
+    pickRandomRecipe(
+      recipePool
+    );
+
+
+  if (!recipe) {
+    return;
+  }
+
+
+  rememberSurpriseRecipe(
+    recipe.id
+  );
+
+
+  state.surpriseRecipeId =
+    recipe.id;
+
+
+  /*
+   * Collapse previously opened
+   * recipes whenever we generate
+   * another surprise.
+   */
+
+  state.expandedRecipeIds
+    .clear();
+
+
+  const match =
+    calculateRecipeMatch(
+      recipe,
+      state.pantry
+    );
+
+
+  const pantryMode =
+    isPantrySurpriseEnabled();
+
+
+  /*
+   * Render only the generated recipe.
+   */
+
+  container.innerHTML =
+    createRecipeCard(
+      recipe,
+      match,
+      {
+        surprise: true
+      }
+    );
+
+
+  /*
+   * Add mode information +
+   * Pick Again without changing
+   * the existing recipe renderer.
+   */
+
+  const recipeCard =
+    container.querySelector(
+      `[data-recipe-id="${recipe.id}"]`
+    );
+
+
+  if (recipeCard) {
+
+    const body =
+      recipeCard.querySelector(
+        ".recipe-card__body"
+      );
+
+
+    if (body) {
+
+      const modeLabel =
+        document.createElement(
+          "div"
+        );
+
+
+      modeLabel.className =
+        pantryMode
+          ? "recipe-surprise-mode recipe-surprise-mode--pantry"
+          : "recipe-surprise-mode recipe-surprise-mode--full";
+
+
+      if (pantryMode) {
+
+        if (
+          state.pantry.size === 0
+        ) {
+
+          modeLabel.textContent =
+            "🧺 Pantry is empty · Full Surprise used";
+
+        } else if (
+          match.canCook
+        ) {
+
+          modeLabel.textContent =
+            "🧺 Ready with what you have";
+
+        } else {
+
+          modeLabel.textContent =
+            `🧺 Missing ${match.missingCount} ingredient${
+              match.missingCount === 1
+                ? ""
+                : "s"
+            }`;
+
+        }
+
+      } else {
+
+        modeLabel.textContent =
+          "🎲 Full Surprise";
+
+      }
+
+
+      body.appendChild(
+        modeLabel
+      );
+
+
+      const pickAgainButton =
+        document.createElement(
+          "button"
+        );
+
+
+      pickAgainButton.type =
+        "button";
+
+
+      pickAgainButton.className =
+        "recipe-pick-again";
+
+
+      pickAgainButton.textContent =
+        "🎲 Pick Again";
+
+
+      pickAgainButton.addEventListener(
+        "click",
+        generateSurpriseRecipeV2
+      );
+
+
+      body.appendChild(
+        pickAgainButton
+      );
+
+    }
+
+  }
+
+
+  /*
+   * Change section title so the
+   * generated result feels deliberate.
+   */
+
+  const sectionTitle =
+    getElement(
+      SELECTORS.recipeSectionTitle
+    );
+
+
+  if (sectionTitle) {
+
+    sectionTitle.textContent =
+      pantryMode
+        ? "Surprise From Your Pantry"
+        : "Your Surprise Pick";
+
+  }
+
+
+  /*
+   * Scroll only enough to show
+   * the result.
+   *
+   * No new page / modal / step.
+   */
+
+  container.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest"
+  });
+}
+
+
+/* =========================
+   REPLACE OLD SURPRISE CLICK
+========================= */
+
+const surpriseButtonV2 =
+  getElement(
+    SELECTORS.surpriseButton
+  );
+
+
+if (surpriseButtonV2) {
+
+  /*
+   * cloneNode removes the old
+   * click listeners registered
+   * by the original Surprise Me
+   * implementation.
+   *
+   * This lets us upgrade the
+   * generator without rewriting
+   * the existing app.js.
+   */
+
+  const upgradedButton =
+    surpriseButtonV2
+      .cloneNode(true);
+
+
+  surpriseButtonV2
+    .replaceWith(
+      upgradedButton
+    );
+
+
+  upgradedButton
+    .addEventListener(
+      "click",
+      generateSurpriseRecipeV2
+    );
+
+}
+
+
+/* =========================
+   PANTRY CHECKBOX
+========================= */
+
+const usePantryCheckbox =
+  getUsePantryCheckbox();
+
+
+if (usePantryCheckbox) {
+
+  usePantryCheckbox
+    .addEventListener(
+      "change",
+      () => {
+
+        /*
+         * Changing mode should not
+         * automatically generate.
+         *
+         * The user remains in control:
+         * checkbox -> Surprise Me.
+         */
+
+        surpriseGeneratorState
+          .recentRecipeIds = [];
+
+      }
+    );
+
+}
