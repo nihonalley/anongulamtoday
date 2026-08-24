@@ -3443,3 +3443,47 @@ input:checked
 .recipe-pick-again:active {
   transform: scale(0.98);
 }
+
+/* =========================================================
+   RECIPE PANTRY STATUS
+========================================================= */
+
+.recipe-match-badge.is-almost {
+  background: rgba(255, 193, 7, 0.16);
+  color: #8a6500;
+}
+
+
+.recipe-match-badge.is-missing {
+  background: rgba(230, 126, 34, 0.12);
+  color: #a65312;
+}
+
+
+.recipe-missing-summary {
+  margin-top: 8px;
+
+  color: var(--color-muted);
+
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+
+.ingredient-status {
+  display: block;
+
+  margin-top: 2px;
+
+  font-weight: 800;
+}
+
+
+.ingredient-status--available {
+  color: var(--color-primary-dark);
+}
+
+
+.ingredient-status--missing {
+  color: #a65312;
+}

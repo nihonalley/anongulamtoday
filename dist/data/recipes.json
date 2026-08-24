@@ -1,0 +1,289 @@
+[
+  {
+    "id": "chicken-adobo",
+    "name": "Chicken Adobo",
+    "description": "Classic Filipino chicken simmered in soy sauce, vinegar, garlic, and spices.",
+    "emoji": "🍗",
+    "cuisine": "filipino",
+    "cookingStyles": ["stew"],
+    "diet": ["dairy-free"],
+    "timeMinutes": 40,
+    "difficulty": "Easy",
+    "servings": "family",
+    "spicy": false,
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "1 kg",
+        "required": true
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1/2 cup",
+        "required": true
+      },
+      {
+        "id": "vinegar",
+        "amount": "1/3 cup",
+        "required": true
+      },
+      {
+        "id": "garlic",
+        "amount": "6 cloves",
+        "required": true
+      },
+      {
+        "id": "bay-leaf",
+        "amount": "3 leaves",
+        "required": true
+      },
+      {
+        "id": "black-pepper",
+        "amount": "1 tsp",
+        "required": true
+      },
+      {
+        "id": "oil",
+        "amount": "1 tbsp",
+        "required": true
+      }
+    ],
+    "steps": [
+      "Heat oil and lightly brown the chicken.",
+      "Add garlic and cook until fragrant.",
+      "Add soy sauce, vinegar, bay leaves, and black pepper.",
+      "Bring to a boil, then lower the heat.",
+      "Cover and simmer until the chicken is tender.",
+      "Remove the lid and reduce the sauce to your preferred consistency."
+    ],
+    "notes": [
+      "Do not stir immediately after adding the vinegar. Let it boil first."
+    ]
+  },
+
+  {
+    "id": "pork-sinigang",
+    "name": "Pork Sinigang",
+    "description": "Sour Filipino pork soup with vegetables.",
+    "emoji": "🥣",
+    "cuisine": "filipino",
+    "cookingStyles": ["soup", "stew"],
+    "diet": ["dairy-free"],
+    "timeMinutes": 60,
+    "difficulty": "Easy",
+    "servings": "family",
+    "spicy": false,
+    "ingredients": [
+      {
+        "id": "pork",
+        "amount": "750 g",
+        "required": true
+      },
+      {
+        "id": "onion",
+        "amount": "1",
+        "required": true
+      },
+      {
+        "id": "tomato",
+        "amount": "2",
+        "required": true
+      },
+      {
+        "id": "sinigang-mix",
+        "amount": "1 pack",
+        "required": true
+      },
+      {
+        "id": "fish-sauce",
+        "amount": "To taste",
+        "required": true
+      }
+    ],
+    "flexibleIngredients": [
+      {
+        "label": "Vegetables",
+        "note": "You can add vegetables that you like."
+      }
+    ],
+    "steps": [
+      "Put pork, onion, and tomato in a pot with water.",
+      "Bring to a boil and remove any scum.",
+      "Lower the heat and simmer until the pork is tender.",
+      "Add the sinigang mix and fish sauce.",
+      "Add your preferred vegetables.",
+      "Cook until the vegetables are done."
+    ],
+    "notes": []
+  },
+
+  {
+    "id": "beef-stir-fry",
+    "name": "Beef Stir Fry",
+    "description": "Quick beef and vegetable stir fry for busy days.",
+    "emoji": "🥘",
+    "cuisine": "chinese",
+    "cookingStyles": ["stir-fry"],
+    "diet": [],
+    "timeMinutes": 25,
+    "difficulty": "Easy",
+    "servings": "family",
+    "spicy": false,
+    "ingredients": [
+      {
+        "id": "beef",
+        "amount": "500 g",
+        "required": true
+      },
+      {
+        "id": "garlic",
+        "amount": "4 cloves",
+        "required": true
+      },
+      {
+        "id": "onion",
+        "amount": "1",
+        "required": true
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "2 tbsp",
+        "required": true
+      },
+      {
+        "id": "oyster-sauce",
+        "amount": "2 tbsp",
+        "required": true
+      },
+      {
+        "id": "oil",
+        "amount": "1 tbsp",
+        "required": true
+      }
+    ],
+    "flexibleIngredients": [
+      {
+        "label": "Vegetables",
+        "note": "Add vegetables that you like or already have."
+      }
+    ],
+    "steps": [
+      "Slice the beef thinly.",
+      "Heat oil over high heat.",
+      "Cook the beef quickly until browned, then set aside.",
+      "Cook garlic and onion.",
+      "Add your vegetables and stir fry.",
+      "Return the beef to the pan.",
+      "Add soy sauce and oyster sauce.",
+      "Toss everything together and serve."
+    ],
+    "notes": []
+  },
+
+  {
+    "id": "garlic-butter-shrimp",
+    "name": "Garlic Butter Shrimp",
+    "description": "Fast buttery shrimp loaded with garlic.",
+    "emoji": "🍤",
+    "cuisine": "filipino",
+    "cookingStyles": ["stir-fry"],
+    "diet": [],
+    "timeMinutes": 15,
+    "difficulty": "Easy",
+    "servings": "couple",
+    "spicy": false,
+    "ingredients": [
+      {
+        "id": "shrimp",
+        "amount": "500 g",
+        "required": true
+      },
+      {
+        "id": "garlic",
+        "amount": "6 cloves",
+        "required": true
+      },
+      {
+        "id": "butter",
+        "amount": "3 tbsp",
+        "required": true
+      },
+      {
+        "id": "salt",
+        "amount": "To taste",
+        "required": true
+      },
+      {
+        "id": "black-pepper",
+        "amount": "To taste",
+        "required": true
+      }
+    ],
+    "steps": [
+      "Melt the butter over medium heat.",
+      "Add garlic and cook until fragrant.",
+      "Add the shrimp.",
+      "Season with salt and black pepper.",
+      "Cook just until the shrimp turns pink and opaque.",
+      "Serve immediately."
+    ],
+    "notes": []
+  },
+
+  {
+    "id": "lemon-garlic-fish",
+    "name": "Lemon Garlic Fish",
+    "description": "Simple pan-cooked fish with garlic and citrus.",
+    "emoji": "🐟",
+    "cuisine": "mediterranean",
+    "cookingStyles": ["fried"],
+    "diet": ["healthy"],
+    "timeMinutes": 20,
+    "difficulty": "Easy",
+    "servings": "couple",
+    "spicy": false,
+    "ingredients": [
+      {
+        "id": "fish",
+        "amount": "2 fillets",
+        "required": true
+      },
+      {
+        "id": "garlic",
+        "amount": "4 cloves",
+        "required": true
+      },
+      {
+        "id": "lemon",
+        "amount": "1",
+        "required": true,
+        "substitutes": ["calamansi"]
+      },
+      {
+        "id": "oil",
+        "amount": "1 tbsp",
+        "required": true
+      },
+      {
+        "id": "salt",
+        "amount": "To taste",
+        "required": true
+      },
+      {
+        "id": "black-pepper",
+        "amount": "To taste",
+        "required": true
+      }
+    ],
+    "steps": [
+      "Season the fish with salt and black pepper.",
+      "Heat oil in a pan.",
+      "Cook the fish until browned and cooked through.",
+      "Add garlic near the end and cook until fragrant.",
+      "Squeeze lemon over the fish before serving."
+    ],
+    "notes": [
+      "Lemon is traditional here, but calamansi works well as a substitute."
+    ]
+  }
+]

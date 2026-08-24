@@ -3,7 +3,6 @@ import {
   loadList
 } from "./storage.js";
 
-
 import {
   loadRecipes,
   calculateRecipeMatch,
@@ -13,16 +12,20 @@ import {
 } from "./recipes.js";
 
 
-/* =========================
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const SURPRISE_HISTORY_LIMIT = 5;
+
+
+/* =========================================================
    SELECTORS
-========================= */
+========================================================= */
 
 const SELECTORS = {
-  advancedToggle:
-    "#advancedToggle",
-
-  advancedPanel:
-    "#advancedPanel",
+  advancedToggle: "#advancedToggle",
+  advancedPanel: "#advancedPanel",
 
   filterButtons:
     "[data-filter-group][data-filter-value]",
@@ -39,11 +42,11 @@ const SELECTORS = {
   recipeContainer:
     ".recipe-scroll",
 
-  recipeSectionTitle:
-    ".section .section-title",
-
   surpriseButton:
     "#surpriseButton",
+
+  usePantryCheckbox:
+    "#usePantryCheckbox",
 
   pantryCard:
     ".quick-card--pantry",
@@ -53,116 +56,61 @@ const SELECTORS = {
 };
 
 
-/* =========================
+/* =========================================================
    FILTER LABELS
-========================= */
+========================================================= */
 
 const FILTER_LABELS = {
   cuisine: {
-    filipino:
-      "Filipino",
-
-    japanese:
-      "Japanese",
-
-    korean:
-      "Korean",
-
-    chinese:
-      "Chinese",
-
-    vietnamese:
-      "Vietnamese",
-
-    european:
-      "European",
-
-    american:
-      "American",
-
-    mediterranean:
-      "Mediterranean"
+    filipino: "Filipino",
+    japanese: "Japanese",
+    korean: "Korean",
+    chinese: "Chinese",
+    vietnamese: "Vietnamese",
+    european: "European",
+    american: "American",
+    mediterranean: "Mediterranean"
   },
 
   cookingStyle: {
-    fried:
-      "Fried",
-
-    stew:
-      "Stew",
-
-    soup:
-      "Soup",
-
-    grilled:
-      "Grilled",
-
-    baked:
-      "Baked",
-
-    "stir-fry":
-      "Stir-fry",
-
-    steamed:
-      "Steamed",
-
-    "air-fryer":
-      "Air Fryer"
+    fried: "Fried",
+    stew: "Stew",
+    soup: "Soup",
+    grilled: "Grilled",
+    baked: "Baked",
+    "stir-fry": "Stir-fry",
+    steamed: "Steamed",
+    "air-fryer": "Air Fryer"
   },
 
   diet: {
-    "kid-friendly":
-      "Kid-friendly",
-
-    healthy:
-      "Healthy",
-
-    "dairy-free":
-      "Dairy-free",
-
-    "gluten-free":
-      "Gluten-free",
-
-    vegetarian:
-      "Vegetarian",
-
-    spicy:
-      "Spicy"
+    "kid-friendly": "Kid-friendly",
+    healthy: "Healthy",
+    "dairy-free": "Dairy-free",
+    "gluten-free": "Gluten-free",
+    vegetarian: "Vegetarian",
+    spicy: "Spicy"
   },
 
   time: {
-    15:
-      "≤ 15 mins",
-
-    30:
-      "≤ 30 mins",
-
-    45:
-      "≤ 45 mins",
-
-    60:
-      "≤ 60 mins"
+    15: "≤ 15 mins",
+    30: "≤ 30 mins",
+    45: "≤ 45 mins",
+    60: "≤ 60 mins"
   },
 
   servings: {
-    one:
-      "One",
-
-    couple:
-      "Couple",
-
-    family:
-      "Family",
-
-    party:
-      "Party"
+    one: "One",
+    couple: "Couple",
+    family: "Family",
+    party: "Party"
   }
 };
 
 
-/* =========================
+/* =========================================================
    APP STATE
-========================= */
+========================================================= */
 
 const state = {
   recipes: [],
@@ -193,38 +141,42 @@ const state = {
   surpriseRecipeId:
     null,
 
+  surpriseUsesPantry:
+    false,
+
+  recentSurpriseIds:
+    [],
+
   expandedRecipeIds:
     new Set()
 };
 
 
-/* =========================
+/* =========================================================
    DOM HELPERS
-========================= */
+========================================================= */
 
 function getElement(
   selector
 ) {
-  return document
-    .querySelector(
-      selector
-    );
+  return document.querySelector(
+    selector
+  );
 }
 
 
 function getElements(
   selector
 ) {
-  return document
-    .querySelectorAll(
-      selector
-    );
+  return document.querySelectorAll(
+    selector
+  );
 }
 
 
-/* =========================
+/* =========================================================
    TEXT HELPERS
-========================= */
+========================================================= */
 
 function capitalize(
   value = ""
@@ -247,9 +199,7 @@ function ingredientIdToLabel(
 ) {
   return ingredientId
     .split("-")
-    .map(
-      capitalize
-    )
+    .map(capitalize)
     .join(" ");
 }
 
@@ -281,9 +231,9 @@ function escapeHtml(
 }
 
 
-/* =========================
-   LOCAL STORAGE STATE
-========================= */
+/* =========================================================
+   LOCAL STORAGE
+========================================================= */
 
 function loadLocalState() {
   state.pantry =
@@ -302,20 +252,16 @@ function loadLocalState() {
 }
 
 
-/* =========================
+/* =========================================================
    FILTER HELPERS
-========================= */
+========================================================= */
 
 function getFilterLabel(
   group,
   value
 ) {
   return (
-    FILTER_LABELS[
-      group
-    ]?.[
-      value
-    ]
+    FILTER_LABELS[group]?.[value]
     ?? value
   );
 }
@@ -326,34 +272,25 @@ function updateFilterState(
   value
 ) {
   const groupState =
-    state.filters[
-      group
-    ];
+    state.filters[group];
 
   if (!groupState) {
     return;
   }
 
-
   if (
-    groupState.has(
-      value
-    )
+    groupState.has(value)
   ) {
-
-    groupState.delete(
-      value
-    );
-
+    groupState.delete(value);
   } else {
-
-    groupState.add(
-      value
-    );
-
+    groupState.add(value);
   }
 
+  clearCurrentSurprise();
+}
 
+
+function clearCurrentSurprise() {
   state.surpriseRecipeId =
     null;
 
@@ -362,28 +299,23 @@ function updateFilterState(
 }
 
 
-/* =========================
+/* =========================================================
    FILTER BUTTON UI
-========================= */
+========================================================= */
 
 function updateFilterButtonStates() {
   getElements(
     SELECTORS.filterButtons
   ).forEach(
     (button) => {
-
       const group =
-        button.dataset
-          .filterGroup;
+        button.dataset.filterGroup;
 
       const value =
-        button.dataset
-          .filterValue;
+        button.dataset.filterValue;
 
       const selected =
-        state.filters[
-          group
-        ]?.has(
+        state.filters[group]?.has(
           value
         );
 
@@ -391,36 +323,29 @@ function updateFilterButtonStates() {
         "is-selected",
         Boolean(selected)
       );
-
     }
   );
 }
 
 
-/* =========================
+/* =========================================================
    ACTIVE FILTERS
-========================= */
+========================================================= */
 
 function getActiveFilters() {
   const filters = [];
 
-
   Object.entries(
     state.filters
   ).forEach(
-    (
-      [
-        group,
-        values
-      ]
-    ) => {
-
+    ([
+      group,
+      values
+    ]) => {
       values.forEach(
         (value) => {
-
           filters.push({
             group,
-
             value,
 
             label:
@@ -429,13 +354,10 @@ function getActiveFilters() {
                 value
               )
           });
-
         }
       );
-
     }
   );
-
 
   return filters;
 }
@@ -452,7 +374,6 @@ function renderActiveFilters() {
       SELECTORS.filterCount
     );
 
-
   if (
     !container
     || !count
@@ -460,24 +381,17 @@ function renderActiveFilters() {
     return;
   }
 
-
   const activeFilters =
     getActiveFilters();
-
 
   count.textContent =
     `${activeFilters.length} selected`;
 
-
   if (
-    activeFilters.length
-    === 0
+    activeFilters.length === 0
   ) {
-
     container.innerHTML = `
-      <span
-        class="active-filter-empty"
-      >
+      <span class="active-filter-empty">
         No filters selected.
       </span>
     `;
@@ -485,14 +399,11 @@ function renderActiveFilters() {
     return;
   }
 
-
   container.innerHTML =
     activeFilters
       .map(
         (filter) => `
-          <span
-            class="active-filter-chip"
-          >
+          <span class="active-filter-chip">
 
             ${escapeHtml(
               filter.label
@@ -500,24 +411,15 @@ function renderActiveFilters() {
 
             <button
               type="button"
-
-              data-remove-filter-group="${
-                escapeHtml(
-                  filter.group
-                )
-              }"
-
-              data-remove-filter-value="${
-                escapeHtml(
-                  filter.value
-                )
-              }"
-
-              aria-label="Remove ${
-                escapeHtml(
-                  filter.label
-                )
-              }"
+              data-remove-filter-group="${escapeHtml(
+                filter.group
+              )}"
+              data-remove-filter-value="${escapeHtml(
+                filter.value
+              )}"
+              aria-label="Remove ${escapeHtml(
+                filter.label
+              )}"
             >
               ×
             </button>
@@ -529,9 +431,9 @@ function renderActiveFilters() {
 }
 
 
-/* =========================
+/* =========================================================
    RESET FILTERS
-========================= */
+========================================================= */
 
 function resetFilters() {
   Object.values(
@@ -541,47 +443,32 @@ function resetFilters() {
       group.clear()
   );
 
-
-  state.surpriseRecipeId =
-    null;
-
-  state.expandedRecipeIds
-    .clear();
-
+  clearCurrentSurprise();
 
   refreshUI();
 }
 
 
-/* =========================
+/* =========================================================
    REMOVE FILTER
-========================= */
+========================================================= */
 
 function removeFilter(
   group,
   value
 ) {
-  state.filters[
-    group
-  ]?.delete(
-    value
-  );
+  state.filters[group]
+    ?.delete(value);
 
-
-  state.surpriseRecipeId =
-    null;
-
-  state.expandedRecipeIds
-    .clear();
-
+  clearCurrentSurprise();
 
   refreshUI();
 }
 
 
-/* =========================
+/* =========================================================
    FILTER RECIPES
-========================= */
+========================================================= */
 
 function getFilteredRecipes() {
   return filterRecipes(
@@ -591,80 +478,227 @@ function getFilteredRecipes() {
 }
 
 
-/* =========================
-   COOKABLE RECIPES
-========================= */
+/* =========================================================
+   PANTRY RANKING
+========================================================= */
 
-function getCookableRankedRecipes() {
-  const filtered =
-    getFilteredRecipes();
-
-
+function getRankedRecipes() {
   return rankRecipesByPantry(
-    filtered,
+    getFilteredRecipes(),
     state.pantry
-  ).filter(
-    (item) =>
-      item.match.canCook
   );
 }
 
 
-/* =========================
-   RECIPE INGREDIENT UI
-========================= */
+/* =========================================================
+   INGREDIENT MATCH HELPERS
+========================================================= */
+
+function pantryHasIngredient(
+  ingredient
+) {
+  if (
+    state.pantry.has(
+      ingredient.id
+    )
+  ) {
+    return true;
+  }
+
+  return (
+    ingredient.substitutes
+      ?.some(
+        (substituteId) =>
+          state.pantry.has(
+            substituteId
+          )
+      )
+    ?? false
+  );
+}
+
+
+function getIngredientMatchType(
+  ingredient
+) {
+  if (
+    state.pantry.has(
+      ingredient.id
+    )
+  ) {
+    return {
+      type: "available",
+      substitute: null
+    };
+  }
+
+  const substitute =
+    ingredient.substitutes
+      ?.find(
+        (substituteId) =>
+          state.pantry.has(
+            substituteId
+          )
+      );
+
+  if (substitute) {
+    return {
+      type: "substitute",
+      substitute
+    };
+  }
+
+  return {
+    type: "missing",
+    substitute: null
+  };
+}
+
+
+/* =========================================================
+   RECIPE STATUS
+========================================================= */
+
+function getRecipeStatus(
+  match
+) {
+  if (
+    match.total === 0
+  ) {
+    return {
+      className:
+        "is-ready",
+
+      label:
+        "✓ Ready to cook"
+    };
+  }
+
+  if (
+    match.canCook
+  ) {
+    return {
+      className:
+        "is-ready",
+
+      label:
+        "✓ Ready to cook"
+    };
+  }
+
+  if (
+    match.missingCount === 1
+  ) {
+    return {
+      className:
+        "is-almost",
+
+      label:
+        "Almost there · Missing 1"
+    };
+  }
+
+  return {
+    className:
+      "is-missing",
+
+    label:
+      `Missing ${match.missingCount} ingredients`
+  };
+}
+
+
+/* =========================================================
+   INGREDIENT LIST
+========================================================= */
 
 function createIngredientList(
   recipe
 ) {
   if (
     !recipe.ingredients
-    || recipe.ingredients.length
-      === 0
+    || recipe.ingredients.length === 0
   ) {
     return "";
   }
 
-
   return `
-    <div
-      class="recipe-detail-section"
-    >
+    <div class="recipe-detail-section">
 
       <h4>
         Ingredients
       </h4>
 
-      <ul
-        class="recipe-detail-list"
-      >
+      <ul class="recipe-detail-list">
 
         ${recipe.ingredients
           .map(
             (ingredient) => {
-
               const substitutes =
                 ingredient.substitutes
                 ?? [];
 
+              const matchInfo =
+                getIngredientMatchType(
+                  ingredient
+                );
+
+              let pantryStatus = "";
+
+              if (
+                state.pantry.size > 0
+              ) {
+                if (
+                  matchInfo.type
+                  === "available"
+                ) {
+                  pantryStatus = `
+                    <small class="ingredient-status ingredient-status--available">
+                      ✓ You have this
+                    </small>
+                  `;
+                }
+
+                if (
+                  matchInfo.type
+                  === "substitute"
+                ) {
+                  pantryStatus = `
+                    <small class="ingredient-status ingredient-status--available">
+                      ✓ You have ${escapeHtml(
+                        ingredientIdToLabel(
+                          matchInfo.substitute
+                        )
+                      )} as an alternative
+                    </small>
+                  `;
+                }
+
+                if (
+                  matchInfo.type
+                  === "missing"
+                ) {
+                  pantryStatus = `
+                    <small class="ingredient-status ingredient-status--missing">
+                      Missing
+                    </small>
+                  `;
+                }
+              }
 
               const substituteText =
-                substitutes.length
-                  > 0
+                substitutes.length > 0
                   ? `
                     <small>
                       Alternative:
-                      ${
-                        substitutes
-                          .map(
-                            ingredientIdToLabel
-                          )
-                          .join(", ")
-                      }
+                      ${substitutes
+                        .map(
+                          ingredientIdToLabel
+                        )
+                        .join(", ")}
                     </small>
                   `
                   : "";
-
 
               return `
                 <li>
@@ -680,20 +714,19 @@ function createIngredientList(
 
                     ${
                       ingredient.amount
-                        ? `
-                          — ${escapeHtml(
+                        ? ` — ${escapeHtml(
                             ingredient.amount
-                          )}
-                        `
+                          )}`
                         : ""
                     }
                   </span>
+
+                  ${pantryStatus}
 
                   ${substituteText}
 
                 </li>
               `;
-
             }
           )
           .join("")}
@@ -705,9 +738,9 @@ function createIngredientList(
 }
 
 
-/* =========================
+/* =========================================================
    FLEXIBLE INGREDIENTS
-========================= */
+========================================================= */
 
 function createFlexibleIngredients(
   recipe
@@ -720,13 +753,8 @@ function createFlexibleIngredients(
     return "";
   }
 
-
   return `
-    <div
-      class="
-        recipe-flexible-note
-      "
-    >
+    <div class="recipe-flexible-note">
 
       ${recipe.flexibleIngredients
         .map(
@@ -753,34 +781,28 @@ function createFlexibleIngredients(
 }
 
 
-/* =========================
-   RECIPE STEPS
-========================= */
+/* =========================================================
+   STEPS
+========================================================= */
 
 function createSteps(
   recipe
 ) {
   if (
     !recipe.steps
-    || recipe.steps.length
-      === 0
+    || recipe.steps.length === 0
   ) {
     return "";
   }
 
-
   return `
-    <div
-      class="recipe-detail-section"
-    >
+    <div class="recipe-detail-section">
 
       <h4>
         Steps
       </h4>
 
-      <ol
-        class="recipe-step-list"
-      >
+      <ol class="recipe-step-list">
 
         ${recipe.steps
           .map(
@@ -801,26 +823,22 @@ function createSteps(
 }
 
 
-/* =========================
-   RECIPE NOTES
-========================= */
+/* =========================================================
+   NOTES
+========================================================= */
 
 function createNotes(
   recipe
 ) {
   if (
     !recipe.notes
-    || recipe.notes.length
-      === 0
+    || recipe.notes.length === 0
   ) {
     return "";
   }
 
-
   return `
-    <div
-      class="recipe-notes"
-    >
+    <div class="recipe-notes">
 
       ${recipe.notes
         .map(
@@ -839,9 +857,9 @@ function createNotes(
 }
 
 
-/* =========================
-   EXPANDED RECIPE
-========================= */
+/* =========================================================
+   RECIPE DETAILS
+========================================================= */
 
 function createRecipeDetails(
   recipe
@@ -852,41 +870,31 @@ function createRecipeDetails(
         recipe.id
       );
 
-
   if (!expanded) {
     return "";
   }
 
-
   return `
-    <div
-      class="recipe-card__details"
-    >
+    <div class="recipe-card__details">
 
-      <p
-        class="recipe-card__description"
-      >
+      <p class="recipe-card__description">
         ${escapeHtml(
           recipe.description
           ?? ""
         )}
       </p>
 
-
       ${createIngredientList(
         recipe
       )}
-
 
       ${createFlexibleIngredients(
         recipe
       )}
 
-
       ${createSteps(
         recipe
       )}
-
 
       ${createNotes(
         recipe
@@ -897,9 +905,80 @@ function createRecipeDetails(
 }
 
 
-/* =========================
+/* =========================================================
+   SURPRISE MODE LABEL
+========================================================= */
+
+function createSurpriseModeLabel(
+  match
+) {
+  if (
+    !state.surpriseRecipeId
+  ) {
+    return "";
+  }
+
+  if (
+    !state.surpriseUsesPantry
+  ) {
+    return `
+      <div
+        class="
+          recipe-surprise-mode
+          recipe-surprise-mode--full
+        "
+      >
+        🎲 Full Surprise
+      </div>
+    `;
+  }
+
+  if (
+    state.pantry.size === 0
+  ) {
+    return `
+      <div
+        class="
+          recipe-surprise-mode
+          recipe-surprise-mode--full
+        "
+      >
+        🎲 Pantry empty · Full Surprise used
+      </div>
+    `;
+  }
+
+  if (
+    match.canCook
+  ) {
+    return `
+      <div
+        class="
+          recipe-surprise-mode
+          recipe-surprise-mode--pantry
+        "
+      >
+        🧺 Ready with what you have
+      </div>
+    `;
+  }
+
+  return `
+    <div
+      class="
+        recipe-surprise-mode
+        recipe-surprise-mode--pantry
+      "
+    >
+      🧺 Closest Pantry Match
+    </div>
+  `;
+}
+
+
+/* =========================================================
    RECIPE CARD
-========================= */
+========================================================= */
 
 function createRecipeCard(
   recipe,
@@ -910,25 +989,26 @@ function createRecipeCard(
     surprise = false
   } = options;
 
-
   const expanded =
     state.expandedRecipeIds
       .has(
         recipe.id
       );
 
-
   const cuisine =
     capitalize(
       recipe.cuisine
     );
 
+  const status =
+    getRecipeStatus(
+      match
+    );
 
-  const readyText =
+  const ingredientCountText =
     match.total > 0
       ? `${match.availableCount}/${match.total} ingredients`
-      : "Ready";
-
+      : "No required ingredients";
 
   return `
     <article
@@ -941,18 +1021,12 @@ function createRecipeCard(
             : ""
         }
       "
-
-      data-recipe-id="${
-        escapeHtml(
-          recipe.id
-        )
-      }"
+      data-recipe-id="${escapeHtml(
+        recipe.id
+      )}"
     >
 
-
-      <div
-        class="recipe-card__image"
-      >
+      <div class="recipe-card__image">
 
         <span
           class="recipe-card__emoji"
@@ -961,52 +1035,37 @@ function createRecipeCard(
           ${recipe.emoji ?? "🍽️"}
         </span>
 
-
         ${
           surprise
             ? `
-              <span
-                class="recipe-surprise-badge"
-              >
+              <span class="recipe-surprise-badge">
                 🎲 Surprise Pick
               </span>
             `
             : ""
         }
 
-
         <button
           class="recipe-card__favorite"
           type="button"
-
-          aria-label="Add ${
-            escapeHtml(
-              recipe.name
-            )
-          } to favorites"
+          aria-label="Add ${escapeHtml(
+            recipe.name
+          )} to favorites"
         >
           ♡
         </button>
 
       </div>
 
+      <div class="recipe-card__body">
 
-      <div
-        class="recipe-card__body"
-      >
-
-        <h3
-          class="recipe-card__title"
-        >
+        <h3 class="recipe-card__title">
           ${escapeHtml(
             recipe.name
           )}
         </h3>
 
-
-        <div
-          class="recipe-card__meta"
-        >
+        <div class="recipe-card__meta">
 
           <span>
             ⏱ ${recipe.timeMinutes} mins
@@ -1021,41 +1080,56 @@ function createRecipeCard(
 
         </div>
 
+        ${createSurpriseModeLabel(
+          match
+        )}
 
-        <div
-          class="recipe-match-row"
-        >
+        <div class="recipe-match-row">
 
           <span
             class="
               recipe-match-badge
-              is-ready
+              ${status.className}
             "
           >
-            ✓ Ready to cook
+            ${escapeHtml(
+              status.label
+            )}
           </span>
 
-          <span
-            class="recipe-match-count"
-          >
-            ${readyText}
+          <span class="recipe-match-count">
+            ${ingredientCountText}
           </span>
 
         </div>
 
+        ${
+          match.missingCount > 0
+            ? `
+              <div class="recipe-missing-summary">
+                Missing:
+                ${match.missing
+                  .map(
+                    (ingredient) =>
+                      escapeHtml(
+                        ingredientIdToLabel(
+                          ingredient.id
+                        )
+                      )
+                  )
+                  .join(", ")}
+              </div>
+            `
+            : ""
+        }
 
-        <div
-          class="recipe-card__tags"
-        >
+        <div class="recipe-card__tags">
 
-          <span
-            class="recipe-card__tag"
-          >
+          <span class="recipe-card__tag">
             ${escapeHtml(
               cuisine
             )}
           </span>
-
 
           ${
             recipe.cookingStyles
@@ -1082,10 +1156,7 @@ function createRecipeCard(
 
         </div>
 
-
-        <div
-          class="recipe-card__actions"
-        >
+        <div class="recipe-card__actions">
 
           <button
             class="
@@ -1093,22 +1164,16 @@ function createRecipeCard(
               recipe-card__action--primary
             "
             type="button"
-
-            data-view-recipe="${
-              escapeHtml(
-                recipe.id
-              )
-            }"
+            data-view-recipe="${escapeHtml(
+              recipe.id
+            )}"
           >
-
             ${
               expanded
                 ? "Hide Recipe"
                 : "View Recipe"
             }
-
           </button>
-
 
           ${
             surprise
@@ -1126,7 +1191,6 @@ function createRecipeCard(
 
         </div>
 
-
         ${createRecipeDetails(
           recipe
         )}
@@ -1138,71 +1202,34 @@ function createRecipeCard(
 }
 
 
-/* =========================
+/* =========================================================
    EMPTY STATE
-========================= */
+========================================================= */
 
 function createEmptyRecipeState() {
-  const hasPantry =
-    state.pantry.size > 0;
-
-
   return `
-    <div
-      class="recipe-empty-state"
-    >
+    <div class="recipe-empty-state">
 
-      <div
-        class="recipe-empty-state__icon"
-      >
-        ${
-          hasPantry
-            ? "🥘"
-            : "🧺"
-        }
+      <div class="recipe-empty-state__icon">
+        🍳
       </div>
 
-
       <strong>
-
-        ${
-          hasPantry
-            ? "No cookable recipes found"
-            : "Your Pantry is empty"
-        }
-
+        No recipes match
       </strong>
 
-
       <p>
-
-        ${
-          hasPantry
-            ? "Try removing a filter or update what you have in your Pantry."
-            : "Check the ingredients you have first so we can find something you can actually cook."
-        }
-
+        Try removing one or more filters.
       </p>
-
-
-      <a
-        class="
-          btn
-          recipe-empty-state__button
-        "
-        href="/pantry.html"
-      >
-        🧺 Open Pantry
-      </a>
 
     </div>
   `;
 }
 
 
-/* =========================
-   NORMAL RESULTS
-========================= */
+/* =========================================================
+   NORMAL BEST MATCHES
+========================================================= */
 
 function renderBestMatches() {
   const container =
@@ -1210,26 +1237,28 @@ function renderBestMatches() {
       SELECTORS.recipeContainer
     );
 
-
   if (!container) {
     return;
   }
 
-
   const ranked =
-    getCookableRankedRecipes();
-
+    getRankedRecipes();
 
   if (
     ranked.length === 0
   ) {
-
     container.innerHTML =
       createEmptyRecipeState();
 
     return;
   }
 
+  /*
+   * Normal browsing should still
+   * show recipes even with an empty Pantry.
+   *
+   * Pantry simply controls their match status.
+   */
 
   container.innerHTML =
     ranked
@@ -1247,9 +1276,264 @@ function renderBestMatches() {
 }
 
 
-/* =========================
+/* =========================================================
+   SURPRISE HISTORY
+========================================================= */
+
+function rememberSurpriseRecipe(
+  recipeId
+) {
+  if (!recipeId) {
+    return;
+  }
+
+  state.recentSurpriseIds =
+    state.recentSurpriseIds
+      .filter(
+        (id) =>
+          id !== recipeId
+      );
+
+  state.recentSurpriseIds
+    .unshift(
+      recipeId
+    );
+
+  state.recentSurpriseIds =
+    state.recentSurpriseIds
+      .slice(
+        0,
+        SURPRISE_HISTORY_LIMIT
+      );
+}
+
+
+function removeRecentRecipes(
+  recipes
+) {
+  if (
+    recipes.length <= 1
+  ) {
+    return recipes;
+  }
+
+  const recent =
+    new Set(
+      state.recentSurpriseIds
+    );
+
+  const fresh =
+    recipes.filter(
+      (recipe) =>
+        !recent.has(
+          recipe.id
+        )
+    );
+
+  return (
+    fresh.length > 0
+      ? fresh
+      : recipes
+  );
+}
+
+
+/* =========================================================
+   FULL SURPRISE POOL
+========================================================= */
+
+function getFullSurprisePool() {
+  /*
+   * Full Surprise ignores Pantry.
+   * User-selected filters still apply.
+   */
+
+  return getFilteredRecipes();
+}
+
+
+/* =========================================================
+   USE WHAT I HAVE POOL
+========================================================= */
+
+function getPantrySurprisePool() {
+  const filtered =
+    getFilteredRecipes();
+
+  if (
+    filtered.length === 0
+  ) {
+    return [];
+  }
+
+  /*
+   * Empty Pantry must NEVER stop
+   * the generator.
+   */
+
+  if (
+    state.pantry.size === 0
+  ) {
+    return filtered;
+  }
+
+  const ranked =
+    rankRecipesByPantry(
+      filtered,
+      state.pantry
+    );
+
+  if (
+    ranked.length === 0
+  ) {
+    return [];
+  }
+
+  /*
+   * First priority:
+   * recipes completely cookable.
+   */
+
+  const ready =
+    ranked.filter(
+      (item) =>
+        item.match.canCook
+    );
+
+  if (
+    ready.length > 0
+  ) {
+    return ready.map(
+      (item) =>
+        item.recipe
+    );
+  }
+
+  /*
+   * Otherwise find recipes with
+   * the fewest missing ingredients.
+   */
+
+  const minimumMissing =
+    Math.min(
+      ...ranked.map(
+        (item) =>
+          item.match.missingCount
+      )
+    );
+
+  return ranked
+    .filter(
+      (item) =>
+        item.match.missingCount
+        === minimumMissing
+    )
+    .map(
+      (item) =>
+        item.recipe
+    );
+}
+
+
+/* =========================================================
+   SURPRISE POOL
+========================================================= */
+
+function getSurprisePool() {
+  if (
+    state.surpriseUsesPantry
+  ) {
+    return getPantrySurprisePool();
+  }
+
+  return getFullSurprisePool();
+}
+
+
+/* =========================================================
+   GENERATE SURPRISE
+========================================================= */
+
+function generateSurpriseRecipe() {
+  /*
+   * Refresh Pantry first in case
+   * user changed it on another page.
+   */
+
+  loadLocalState();
+
+  const checkbox =
+    getElement(
+      SELECTORS.usePantryCheckbox
+    );
+
+  state.surpriseUsesPantry =
+    Boolean(
+      checkbox?.checked
+    );
+
+  let pool =
+    getSurprisePool();
+
+  if (
+    pool.length === 0
+  ) {
+    const container =
+      getElement(
+        SELECTORS.recipeContainer
+      );
+
+    if (container) {
+      container.innerHTML =
+        createEmptyRecipeState();
+
+      container.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+      });
+    }
+
+    return;
+  }
+
+  pool =
+    removeRecentRecipes(
+      pool
+    );
+
+  const recipe =
+    pickRandomRecipe(
+      pool
+    );
+
+  if (!recipe) {
+    return;
+  }
+
+  state.surpriseRecipeId =
+    recipe.id;
+
+  rememberSurpriseRecipe(
+    recipe.id
+  );
+
+  state.expandedRecipeIds
+    .clear();
+
+  renderRecipes();
+
+  getElement(
+    SELECTORS.recipeContainer
+  )?.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest"
+  });
+}
+
+
+/* =========================================================
    SURPRISE RESULT
-========================= */
+========================================================= */
 
 function renderSurpriseRecipe() {
   const container =
@@ -1257,11 +1541,9 @@ function renderSurpriseRecipe() {
       SELECTORS.recipeContainer
     );
 
-
   if (!container) {
     return;
   }
-
 
   const recipe =
     state.recipes.find(
@@ -1270,14 +1552,14 @@ function renderSurpriseRecipe() {
         === state.surpriseRecipeId
     );
 
-
   if (!recipe) {
+    state.surpriseRecipeId =
+      null;
 
     renderBestMatches();
 
     return;
   }
-
 
   const match =
     calculateRecipeMatch(
@@ -1285,110 +1567,37 @@ function renderSurpriseRecipe() {
       state.pantry
     );
 
-
   container.innerHTML =
     createRecipeCard(
       recipe,
       match,
       {
-        surprise:
-          true
+        surprise: true
       }
     );
 }
 
 
-/* =========================
-   RESULTS RENDERER
-========================= */
+/* =========================================================
+   MAIN RECIPE RENDERER
+========================================================= */
 
 function renderRecipes() {
   if (
     state.surpriseRecipeId
   ) {
-
     renderSurpriseRecipe();
-
-  } else {
-
-    renderBestMatches();
-
-  }
-}
-
-
-/* =========================
-   SURPRISE PICK
-========================= */
-
-function pickSurpriseRecipe() {
-  const cookable =
-    getCookableRankedRecipes()
-      .map(
-        (item) =>
-          item.recipe
-      );
-
-
-  const picked =
-    pickRandomRecipe(
-      cookable
-    );
-
-
-  if (!picked) {
-
-    state.surpriseRecipeId =
-      null;
-
-    renderBestMatches();
-
-
-    const container =
-      getElement(
-        SELECTORS.recipeContainer
-      );
-
-
-    container?.scrollIntoView({
-      behavior:
-        "smooth",
-
-      block:
-        "center"
-    });
-
 
     return;
   }
 
-
-  state.surpriseRecipeId =
-    picked.id;
-
-
-  state.expandedRecipeIds
-    .clear();
-
-
-  renderRecipes();
-
-
-  getElement(
-    SELECTORS.recipeContainer
-  )?.scrollIntoView({
-    behavior:
-      "smooth",
-
-    block:
-      "center"
-  });
+  renderBestMatches();
 }
 
 
-/* =========================
-   VIEW RECIPE
-========================= */
+/* =========================================================
+   VIEW / HIDE RECIPE
+========================================================= */
 
 function toggleRecipeDetails(
   recipeId
@@ -1399,44 +1608,31 @@ function toggleRecipeDetails(
         recipeId
       )
   ) {
-
     state.expandedRecipeIds
       .delete(
         recipeId
       );
-
   } else {
-
     state.expandedRecipeIds
       .add(
         recipeId
       );
-
   }
-
 
   renderRecipes();
 
-
-  const card =
-    document.querySelector(
-      `[data-recipe-id="${recipeId}"]`
-    );
-
-
-  card?.scrollIntoView({
-    behavior:
-      "smooth",
-
-    block:
-      "nearest"
+  document.querySelector(
+    `[data-recipe-id="${recipeId}"]`
+  )?.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest"
   });
 }
 
 
-/* =========================
+/* =========================================================
    QUICK CARD COUNTS
-========================= */
+========================================================= */
 
 function updateQuickCards() {
   const pantryCard =
@@ -1444,57 +1640,46 @@ function updateQuickCards() {
       SELECTORS.pantryCard
     );
 
-
   const pantryText =
     pantryCard?.querySelector(
       "small"
     );
 
-
   if (pantryText) {
-
     const count =
       state.pantry.size;
-
 
     pantryText.textContent =
       count === 1
         ? "1 ingredient available"
         : `${count} ingredients available`;
-
   }
-
 
   const shoppingCard =
     getElement(
       SELECTORS.shoppingCard
     );
 
-
   const shoppingText =
     shoppingCard?.querySelector(
       "small"
     );
 
-
   if (shoppingText) {
-
     const count =
       state.shopping.size;
-
 
     shoppingText.textContent =
       count === 1
         ? "1 item to buy"
         : `${count} items to buy`;
-
   }
 }
 
 
-/* =========================
-   REFRESH UI
-========================= */
+/* =========================================================
+   REFRESH
+========================================================= */
 
 function refreshUI() {
   updateFilterButtonStates();
@@ -1507,9 +1692,9 @@ function refreshUI() {
 }
 
 
-/* =========================
+/* =========================================================
    ADVANCED SEARCH
-========================= */
+========================================================= */
 
 function setupAdvancedSearch() {
   const trigger =
@@ -1522,21 +1707,17 @@ function setupAdvancedSearch() {
       SELECTORS.advancedPanel
     );
 
-
   trigger?.addEventListener(
     "click",
     () => {
-
       if (!panel) {
         return;
       }
-
 
       const expanded =
         trigger.getAttribute(
           "aria-expanded"
         ) === "true";
-
 
       trigger.setAttribute(
         "aria-expanded",
@@ -1545,51 +1726,37 @@ function setupAdvancedSearch() {
         )
       );
 
-
       panel.hidden =
         expanded;
-
     }
   );
 }
 
 
-/* =========================
-   FILTER BUTTON EVENTS
-========================= */
+/* =========================================================
+   FILTER EVENTS
+========================================================= */
 
 function setupFilterButtons() {
   getElements(
     SELECTORS.filterButtons
   ).forEach(
     (button) => {
-
       button.addEventListener(
         "click",
         () => {
-
           updateFilterState(
-            button.dataset
-              .filterGroup,
-
-            button.dataset
-              .filterValue
+            button.dataset.filterGroup,
+            button.dataset.filterValue
           );
 
-
           refreshUI();
-
         }
       );
-
     }
   );
 }
 
-
-/* =========================
-   RESET EVENT
-========================= */
 
 function setupResetFilters() {
   getElement(
@@ -1601,27 +1768,20 @@ function setupResetFilters() {
 }
 
 
-/* =========================
-   ACTIVE FILTER REMOVAL
-========================= */
-
 function setupActiveFilterRemoval() {
   getElement(
     SELECTORS.activeFilterList
   )?.addEventListener(
     "click",
     (event) => {
-
       const button =
         event.target.closest(
           "[data-remove-filter-group]"
         );
 
-
       if (!button) {
         return;
       }
-
 
       removeFilter(
         button.dataset
@@ -1630,29 +1790,45 @@ function setupActiveFilterRemoval() {
         button.dataset
           .removeFilterValue
       );
-
     }
   );
 }
 
 
-/* =========================
-   SURPRISE EVENT
-========================= */
+/* =========================================================
+   SURPRISE EVENTS
+========================================================= */
 
-function setupSurpriseButton() {
+function setupSurpriseGenerator() {
   getElement(
     SELECTORS.surpriseButton
   )?.addEventListener(
     "click",
-    pickSurpriseRecipe
+    generateSurpriseRecipe
+  );
+
+  getElement(
+    SELECTORS.usePantryCheckbox
+  )?.addEventListener(
+    "change",
+    () => {
+      /*
+       * Do not generate automatically.
+       *
+       * Changing this checkbox only
+       * changes what the next Surprise
+       * click will do.
+       */
+
+      state.recentSurpriseIds = [];
+    }
   );
 }
 
 
-/* =========================
+/* =========================================================
    RECIPE EVENTS
-========================= */
+========================================================= */
 
 function setupRecipeEvents() {
   getElement(
@@ -1660,15 +1836,12 @@ function setupRecipeEvents() {
   )?.addEventListener(
     "click",
     (event) => {
-
       const viewButton =
         event.target.closest(
           "[data-view-recipe]"
         );
 
-
       if (viewButton) {
-
         toggleRecipeDetails(
           viewButton.dataset
             .viewRecipe
@@ -1677,50 +1850,44 @@ function setupRecipeEvents() {
         return;
       }
 
-
-      const pickAgainButton =
+      const pickAgain =
         event.target.closest(
           "[data-pick-again]"
         );
 
-
-      if (
-        pickAgainButton
-      ) {
-
-        pickSurpriseRecipe();
-
+      if (pickAgain) {
+        generateSurpriseRecipe();
       }
-
     }
   );
 }
 
 
-/* =========================
-   STORAGE CHANGE SYNC
-========================= */
+/* =========================================================
+   STORAGE SYNC
+========================================================= */
 
 function setupStorageSync() {
   window.addEventListener(
     "storage",
     () => {
-
       loadLocalState();
 
-      state.surpriseRecipeId =
-        null;
+      /*
+       * Keep a currently generated
+       * recipe on screen, but update
+       * its Pantry status.
+       */
 
       refreshUI();
-
     }
   );
 }
 
 
-/* =========================
+/* =========================================================
    EVENTS
-========================= */
+========================================================= */
 
 function setupEvents() {
   setupAdvancedSearch();
@@ -1731,7 +1898,7 @@ function setupEvents() {
 
   setupActiveFilterRemoval();
 
-  setupSurpriseButton();
+  setupSurpriseGenerator();
 
   setupRecipeEvents();
 
@@ -1739,9 +1906,9 @@ function setupEvents() {
 }
 
 
-/* =========================
-   LOAD DATA
-========================= */
+/* =========================================================
+   DATA
+========================================================= */
 
 async function loadData() {
   state.recipes =
@@ -1749,9 +1916,9 @@ async function loadData() {
 }
 
 
-/* =========================
-   ERROR UI
-========================= */
+/* =========================================================
+   LOAD ERROR
+========================================================= */
 
 function renderLoadError() {
   const container =
@@ -1759,28 +1926,20 @@ function renderLoadError() {
       SELECTORS.recipeContainer
     );
 
-
   if (!container) {
     return;
   }
 
-
   container.innerHTML = `
-    <div
-      class="recipe-empty-state"
-    >
+    <div class="recipe-empty-state">
 
-      <div
-        class="recipe-empty-state__icon"
-      >
+      <div class="recipe-empty-state__icon">
         ⚠️
       </div>
-
 
       <strong>
         Unable to load recipes
       </strong>
-
 
       <p>
         Refresh the page and try again.
@@ -1791,30 +1950,25 @@ function renderLoadError() {
 }
 
 
-/* =========================
+/* =========================================================
    INIT
-========================= */
+========================================================= */
 
 async function init() {
   loadLocalState();
 
   setupEvents();
 
-
   try {
-
     await loadData();
 
     refreshUI();
-
   } catch (error) {
-
     console.error(
       error
     );
 
     renderLoadError();
-
   }
 }
 
@@ -1822,587 +1976,4 @@ async function init() {
 document.addEventListener(
   "DOMContentLoaded",
   init
-);
-
-/* =========================================================
-   SURPRISE GENERATOR V2
-   ========================================================= */
-
-const SURPRISE_HISTORY_LIMIT = 5;
-
-const surpriseGeneratorState = {
-  recentRecipeIds: []
-};
-
-
-/* =========================
-   ELEMENTS
-========================= */
-
-function getUsePantryCheckbox() {
-  return document.querySelector(
-    "#usePantryCheckbox"
-  );
-}
-
-
-/* =========================
-   MODE
-========================= */
-
-function isPantrySurpriseEnabled() {
-  return Boolean(
-    getUsePantryCheckbox()?.checked
-  );
-}
-
-
-/* =========================
-   HISTORY
-========================= */
-
-function rememberSurpriseRecipe(
-  recipeId
-) {
-  if (!recipeId) {
-    return;
-  }
-
-
-  surpriseGeneratorState
-    .recentRecipeIds =
-    surpriseGeneratorState
-      .recentRecipeIds
-      .filter(
-        (id) =>
-          id !== recipeId
-      );
-
-
-  surpriseGeneratorState
-    .recentRecipeIds
-    .unshift(
-      recipeId
-    );
-
-
-  surpriseGeneratorState
-    .recentRecipeIds =
-    surpriseGeneratorState
-      .recentRecipeIds
-      .slice(
-        0,
-        SURPRISE_HISTORY_LIMIT
-      );
-}
-
-
-/* =========================
-   REMOVE RECENT PICKS
-========================= */
-
-function removeRecentSurpriseRecipes(
-  recipes
-) {
-  if (
-    !recipes
-    || recipes.length <= 1
-  ) {
-    return recipes ?? [];
-  }
-
-
-  const recentIds =
-    new Set(
-      surpriseGeneratorState
-        .recentRecipeIds
-    );
-
-
-  const freshRecipes =
-    recipes.filter(
-      (recipe) =>
-        !recentIds.has(
-          recipe.id
-        )
-    );
-
-
-  /*
-   * If we've already seen everything,
-   * allow the full pool again.
-   */
-
-  return freshRecipes.length > 0
-    ? freshRecipes
-    : recipes;
-}
-
-
-/* =========================
-   FULL SURPRISE POOL
-========================= */
-
-function getFullSurprisePool() {
-
-  /*
-   * Existing filters still apply.
-   *
-   * Pantry does NOT affect this mode.
-   */
-
-  return getFilteredRecipes();
-}
-
-
-/* =========================
-   PANTRY SURPRISE POOL
-========================= */
-
-function getPantrySurprisePool() {
-
-  const filtered =
-    getFilteredRecipes();
-
-
-  if (filtered.length === 0) {
-    return [];
-  }
-
-
-  /*
-   * No Pantry items:
-   *
-   * We don't block Surprise Me.
-   * We simply fall back to the
-   * filtered recipe library.
-   */
-
-  if (state.pantry.size === 0) {
-    return filtered;
-  }
-
-
-  const ranked =
-    rankRecipesByPantry(
-      filtered,
-      state.pantry
-    );
-
-
-  if (ranked.length === 0) {
-    return [];
-  }
-
-
-  /*
-   * PRIORITY 1:
-   * Recipes that can be cooked now.
-   */
-
-  const readyToCook =
-    ranked.filter(
-      (item) =>
-        item.match.canCook
-    );
-
-
-  if (readyToCook.length > 0) {
-
-    return readyToCook.map(
-      (item) =>
-        item.recipe
-    );
-
-  }
-
-
-  /*
-   * PRIORITY 2:
-   * No complete recipe.
-   *
-   * Find the smallest number of
-   * missing ingredients.
-   */
-
-  const lowestMissingCount =
-    Math.min(
-      ...ranked.map(
-        (item) =>
-          item.match.missingCount
-      )
-    );
-
-
-  /*
-   * Pick randomly among recipes
-   * equally close to being cookable.
-   */
-
-  return ranked
-    .filter(
-      (item) =>
-        item.match.missingCount
-        === lowestMissingCount
-    )
-    .map(
-      (item) =>
-        item.recipe
-    );
-}
-
-
-/* =========================
-   GET SURPRISE POOL
-========================= */
-
-function getSurpriseGeneratorPool() {
-
-  if (
-    isPantrySurpriseEnabled()
-  ) {
-
-    return getPantrySurprisePool();
-
-  }
-
-
-  return getFullSurprisePool();
-}
-
-
-/* =========================
-   GENERATE
-========================= */
-
-function generateSurpriseRecipeV2() {
-
-  const container =
-    getElement(
-      SELECTORS.recipeContainer
-    );
-
-
-  if (!container) {
-    return;
-  }
-
-
-  let recipePool =
-    getSurpriseGeneratorPool();
-
-
-  if (
-    !recipePool
-    || recipePool.length === 0
-  ) {
-
-    container.innerHTML = `
-      <div class="recipe-empty-state">
-
-        <span>
-          🍳
-        </span>
-
-        <strong>
-          No recipe matches right now.
-        </strong>
-
-        <small>
-          Try removing some filters.
-        </small>
-
-      </div>
-    `;
-
-    return;
-  }
-
-
-  recipePool =
-    removeRecentSurpriseRecipes(
-      recipePool
-    );
-
-
-  const recipe =
-    pickRandomRecipe(
-      recipePool
-    );
-
-
-  if (!recipe) {
-    return;
-  }
-
-
-  rememberSurpriseRecipe(
-    recipe.id
-  );
-
-
-  state.surpriseRecipeId =
-    recipe.id;
-
-
-  /*
-   * Collapse previously opened
-   * recipes whenever we generate
-   * another surprise.
-   */
-
-  state.expandedRecipeIds
-    .clear();
-
-
-  const match =
-    calculateRecipeMatch(
-      recipe,
-      state.pantry
-    );
-
-
-  const pantryMode =
-    isPantrySurpriseEnabled();
-
-
-  /*
-   * Render only the generated recipe.
-   */
-
-  container.innerHTML =
-    createRecipeCard(
-      recipe,
-      match,
-      {
-        surprise: true
-      }
-    );
-
-
-  /*
-   * Add mode information +
-   * Pick Again without changing
-   * the existing recipe renderer.
-   */
-
-  const recipeCard =
-    container.querySelector(
-      `[data-recipe-id="${recipe.id}"]`
-    );
-
-
-  if (recipeCard) {
-
-    const body =
-      recipeCard.querySelector(
-        ".recipe-card__body"
-      );
-
-
-    if (body) {
-
-      const modeLabel =
-        document.createElement(
-          "div"
-        );
-
-
-      modeLabel.className =
-        pantryMode
-          ? "recipe-surprise-mode recipe-surprise-mode--pantry"
-          : "recipe-surprise-mode recipe-surprise-mode--full";
-
-
-      if (pantryMode) {
-
-        if (
-          state.pantry.size === 0
-        ) {
-
-          modeLabel.textContent =
-            "🧺 Pantry is empty · Full Surprise used";
-
-        } else if (
-          match.canCook
-        ) {
-
-          modeLabel.textContent =
-            "🧺 Ready with what you have";
-
-        } else {
-
-          modeLabel.textContent =
-            `🧺 Missing ${match.missingCount} ingredient${
-              match.missingCount === 1
-                ? ""
-                : "s"
-            }`;
-
-        }
-
-      } else {
-
-        modeLabel.textContent =
-          "🎲 Full Surprise";
-
-      }
-
-
-      body.appendChild(
-        modeLabel
-      );
-
-
-      const pickAgainButton =
-        document.createElement(
-          "button"
-        );
-
-
-      pickAgainButton.type =
-        "button";
-
-
-      pickAgainButton.className =
-        "recipe-pick-again";
-
-
-      pickAgainButton.textContent =
-        "🎲 Pick Again";
-
-
-      pickAgainButton.addEventListener(
-        "click",
-        generateSurpriseRecipeV2
-      );
-
-
-      body.appendChild(
-        pickAgainButton
-      );
-
-    }
-
-  }
-
-
-  /*
-   * Change section title so the
-   * generated result feels deliberate.
-   */
-
-  const sectionTitle =
-    getElement(
-      SELECTORS.recipeSectionTitle
-    );
-
-
-  if (sectionTitle) {
-
-    sectionTitle.textContent =
-      pantryMode
-        ? "Surprise From Your Pantry"
-        : "Your Surprise Pick";
-
-  }
-
-
-  /*
-   * Scroll only enough to show
-   * the result.
-   *
-   * No new page / modal / step.
-   */
-
-  container.scrollIntoView({
-    behavior: "smooth",
-    block: "nearest"
-  });
-}
-
-
-/* =========================================================
-   ACTIVATE SURPRISE GENERATOR V2
-   ========================================================= */
-
-function setupSurpriseGeneratorV2() {
-
-  const oldButton =
-    getElement(
-      SELECTORS.surpriseButton
-    );
-
-
-  if (!oldButton) {
-    return;
-  }
-
-
-  /*
-   * Clone the button so the click listener
-   * from the original generator is removed.
-   */
-
-  const newButton =
-    oldButton.cloneNode(true);
-
-
-  oldButton.replaceWith(
-    newButton
-  );
-
-
-  /*
-   * Full Surprise is the default.
-   */
-
-  newButton.addEventListener(
-    "click",
-    generateSurpriseRecipeV2
-  );
-
-
-  /*
-   * Changing Pantry mode should NOT
-   * generate automatically.
-   */
-
-  const pantryCheckbox =
-    getUsePantryCheckbox();
-
-
-  if (pantryCheckbox) {
-
-    pantryCheckbox.addEventListener(
-      "change",
-      () => {
-
-        surpriseGeneratorState
-          .recentRecipeIds = [];
-
-      }
-    );
-
-  }
-
-}
-
-
-/*
- * app.js is a module loaded while the
- * document is still being parsed.
- *
- * Wait until init() has already registered
- * the original listeners, then replace the
- * Surprise button with our V2 button.
- */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    setupSurpriseGeneratorV2();
-
-  }
 );
