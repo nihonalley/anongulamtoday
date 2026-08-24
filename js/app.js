@@ -2322,71 +2322,61 @@ function generateSurpriseRecipeV2() {
 }
 
 
-/* =========================
-   REPLACE OLD SURPRISE CLICK
-========================= */
+/* =========================================================
+   ACTIVATE SURPRISE GENERATOR V2
+   ========================================================= */
 
-const surpriseButtonV2 =
-  getElement(
-    SELECTORS.surpriseButton
+function setupSurpriseGeneratorV2() {
+
+  const oldButton =
+    getElement(
+      SELECTORS.surpriseButton
+    );
+
+
+  if (!oldButton) {
+    return;
+  }
+
+
+  /*
+   * Clone the button so the click listener
+   * from the original generator is removed.
+   */
+
+  const newButton =
+    oldButton.cloneNode(true);
+
+
+  oldButton.replaceWith(
+    newButton
   );
 
 
-if (surpriseButtonV2) {
-
   /*
-   * cloneNode removes the old
-   * click listeners registered
-   * by the original Surprise Me
-   * implementation.
-   *
-   * This lets us upgrade the
-   * generator without rewriting
-   * the existing app.js.
+   * Full Surprise is the default.
    */
 
-  const upgradedButton =
-    surpriseButtonV2
-      .cloneNode(true);
+  newButton.addEventListener(
+    "click",
+    generateSurpriseRecipeV2
+  );
 
 
-  surpriseButtonV2
-    .replaceWith(
-      upgradedButton
-    );
+  /*
+   * Changing Pantry mode should NOT
+   * generate automatically.
+   */
+
+  const pantryCheckbox =
+    getUsePantryCheckbox();
 
 
-  upgradedButton
-    .addEventListener(
-      "click",
-      generateSurpriseRecipeV2
-    );
+  if (pantryCheckbox) {
 
-}
-
-
-/* =========================
-   PANTRY CHECKBOX
-========================= */
-
-const usePantryCheckbox =
-  getUsePantryCheckbox();
-
-
-if (usePantryCheckbox) {
-
-  usePantryCheckbox
-    .addEventListener(
+    pantryCheckbox.addEventListener(
       "change",
       () => {
-
-        /*
-         * Changing mode should not
-         * automatically generate.
-         *
-         * The user remains in control:
-         * checkbox -> Surprise Me.
-         */
 
         surpriseGeneratorState
           .recentRecipeIds = [];
@@ -2394,4 +2384,25 @@ if (usePantryCheckbox) {
       }
     );
 
+  }
+
 }
+
+
+/*
+ * app.js is a module loaded while the
+ * document is still being parsed.
+ *
+ * Wait until init() has already registered
+ * the original listeners, then replace the
+ * Surprise button with our V2 button.
+ */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    setupSurpriseGeneratorV2();
+
+  }
+);
