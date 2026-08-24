@@ -9,18 +9,37 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Pantry | Anong Ulam Today?</title>
-
-  <script type="module" crossorigin src="/assets/pantry-5oUwSLxE.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/responsive-BIKCJs_0.js">
-  <link rel="modulepreload" crossorigin href="/assets/storage-CDiBwFzA.js">
-  <link rel="stylesheet" crossorigin href="/assets/responsive-BNqb0_BH.css">
+  <meta
+    name="description"
+    content="Manage the ingredients you currently have at home."
+  >
+
+  <title>
+    Pantry | Anong Ulam Today?
+  </title>
+
+
+  <script type="module" crossorigin src="/assets/pantry-CuEuK7Lx.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/responsive-A1jkOC6g.js">
+  <link rel="modulepreload" crossorigin href="/assets/storage-B7ZZLbK0.js">
+  <link rel="stylesheet" crossorigin href="/assets/responsive-CiJvDae5.css">
 </head>
+
 
 <body>
 
+  <!-- =========================
+       HEADER
+  ========================== -->
+
   <header class="site-header">
-    <div class="container site-header__inner">
+
+    <div
+      class="
+        container
+        site-header__inner
+      "
+    >
 
       <button
         class="icon-button"
@@ -30,9 +49,16 @@
         ☰
       </button>
 
-      <a class="site-title" href="/">
-        Anong <span>Ulam</span> Today?
+
+      <a
+        class="site-title"
+        href="/"
+      >
+        Anong
+        <span>Ulam</span>
+        Today?
       </a>
+
 
       <button
         class="icon-button"
@@ -43,12 +69,22 @@
       </button>
 
     </div>
+
   </header>
 
+
+  <!-- =========================
+       MAIN
+  ========================== -->
 
   <main class="site-main">
 
     <div class="container">
+
+
+      <!-- =========================
+           PAGE HEADING
+      ========================== -->
 
       <section class="page-heading">
 
@@ -57,11 +93,15 @@
         </h1>
 
         <p class="page-heading__subtitle">
-          Check the ingredients you currently have.
+          Check the ingredients you already have at home.
         </p>
 
       </section>
 
+
+      <!-- =========================
+           SEARCH
+      ========================== -->
 
       <section class="pantry-tools">
 
@@ -81,7 +121,7 @@
         </label>
 
 
-        <label class="toggle-row">
+        <label class="pantry-available-toggle">
 
           <input
             id="showAvailableOnly"
@@ -97,6 +137,37 @@
       </section>
 
 
+      <!-- =========================
+           PANTRY INFO
+      ========================== -->
+
+      <section class="pantry-info-card">
+
+        <span class="pantry-info-card__icon">
+          💡
+        </span>
+
+        <div>
+
+          <strong>
+            How this works
+          </strong>
+
+          <p>
+            Check an ingredient when you have it.
+            You can still add any ingredient to your
+            Shopping List whenever you need more.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           PANTRY LIST
+      ========================== -->
+
       <section
         class="pantry-list"
         id="pantryList"
@@ -108,41 +179,67 @@
   </main>
 
 
+  <!-- =========================
+       MOBILE BOTTOM NAV
+  ========================== -->
+
   <nav class="bottom-nav">
+
+
+    <!-- ULAM -->
 
     <a
       class="bottom-nav__item"
       href="/"
     >
+
       <span class="bottom-nav__icon">
         🍳
       </span>
 
-      <span>Ulam</span>
+      <span>
+        Ulam
+      </span>
+
     </a>
 
 
+    <!-- PANTRY -->
+
     <a
-      class="bottom-nav__item is-active"
+      class="
+        bottom-nav__item
+        is-active
+      "
       href="/pantry.html"
     >
+
       <span class="bottom-nav__icon">
         🧺
       </span>
 
-      <span>Pantry</span>
+      <span>
+        Pantry
+      </span>
+
     </a>
 
 
+    <!-- SHOPPING -->
+
     <a
       class="bottom-nav__item"
-      href="#"
+      href="/shopping.html"
     >
+
       <span class="bottom-nav__icon">
         🛒
       </span>
 
-      <span>Shopping</span>
+      <span>
+        Shopping
+      </span>
+
     </a>
 
   </nav>

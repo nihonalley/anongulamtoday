@@ -1,9 +1,15 @@
 import {
   STORAGE_KEYS,
   loadList,
-  saveList
+  saveList,
+  loadObject,
+  saveObject
 } from "./storage.js";
 
+
+/* =========================
+   CATEGORY DATA
+========================= */
 
 const CATEGORY_META = {
   meat: {
@@ -51,76 +57,255 @@ const CATEGORY_META = {
     icon: "❄️"
   },
 
+  custom: {
+    label: "Other Items",
+    icon: "🛍️"
+  },
+
   other: {
     label: "Other",
-    icon: "🛍️"
+    icon: "🛒"
   }
 };
 
+
+/* =========================
+   APP STATE
+========================= */
 
 const state = {
   ingredients: [],
   shopping: new Set(),
   pantry: new Set(),
-  search: ""
+
+  customIngredients: {},
+  shoppingMeta: {},
+
+  search: "",
+
+  history: [],
+  future: []
 };
 
 
-function normalizeText(value = "") {
+/* =========================
+   HELPERS
+========================= */
+
+function normalizeText(
+  value = ""
+) {
   return String(value)
     .trim()
     .toLowerCase();
 }
 
 
-function loadState() {
-  state.shopping = new Set(
-    loadList(STORAGE_KEYS.shopping)
-  );
-
-  state.pantry = new Set(
-    loadList(STORAGE_KEYS.pantry)
-  );
+function createSlug(
+  value
+) {
+  return normalizeText(value)
+    .replace(
+      /[^a-z0-9]+/g,
+      "-"
+    )
+    .replace(
+      /^-+|-+$/g,
+      ""
+    );
 }
 
 
-function saveShopping() {
+function cloneSnapshot() {
+  return {
+    shopping:
+      [...state.shopping],
+
+    pantry:
+      [...state.pantry],
+
+    customIngredients:
+      structuredClone(
+        state.customIngredients
+      ),
+
+    shoppingMeta:
+      structuredClone(
+        state.shoppingMeta
+      )
+  };
+}
+
+
+function restoreSnapshot(
+  snapshot
+) {
+  state.shopping =
+    new Set(
+      snapshot.shopping
+    );
+
+  state.pantry =
+    new Set(
+      snapshot.pantry
+    );
+
+  state.customIngredients =
+    structuredClone(
+      snapshot.customIngredients
+    );
+
+  state.shoppingMeta =
+    structuredClone(
+      snapshot.shoppingMeta
+    );
+
+  saveState();
+
+  render();
+}
+
+
+function pushHistory() {
+  state.history.push(
+    cloneSnapshot()
+  );
+
+  if (
+    state.history.length > 30
+  ) {
+    state.history.shift();
+  }
+
+  state.future = [];
+
+  updateHistoryButtons();
+}
+
+
+/* =========================
+   STORAGE
+========================= */
+
+function loadState() {
+  state.shopping =
+    new Set(
+      loadList(
+        STORAGE_KEYS.shopping
+      )
+    );
+
+  state.pantry =
+    new Set(
+      loadList(
+        STORAGE_KEYS.pantry
+      )
+    );
+
+  state.customIngredients =
+    loadObject(
+      STORAGE_KEYS.customIngredients
+    );
+
+  state.shoppingMeta =
+    loadObject(
+      STORAGE_KEYS.shoppingMeta
+    );
+}
+
+
+function saveState() {
   saveList(
     STORAGE_KEYS.shopping,
     state.shopping
   );
-}
 
-
-function savePantry() {
   saveList(
     STORAGE_KEYS.pantry,
     state.pantry
   );
-}
 
+  saveObject(
+    STORAGE_KEYS.customIngredients,
+    state.customIngredients
+  );
 
-function getIngredient(id) {
-  return state.ingredients.find(
-    (ingredient) =>
-      ingredient.id === id
+  saveObject(
+    STORAGE_KEYS.shoppingMeta,
+    state.shoppingMeta
   );
 }
 
+
+/* =========================
+   INGREDIENT LOOKUP
+========================= */
+
+function getIngredient(
+  ingredientId
+) {
+  const standard =
+    state.ingredients.find(
+      (ingredient) =>
+        ingredient.id === ingredientId
+    );
+
+  if (standard) {
+    return standard;
+  }
+
+  return (
+    state.customIngredients[
+      ingredientId
+    ]
+    ?? null
+  );
+}
+
+
+function getMeta(
+  ingredientId
+) {
+  state.shoppingMeta[
+    ingredientId
+  ] ??= {
+    quantity: "",
+    note: ""
+  };
+
+  return state.shoppingMeta[
+    ingredientId
+  ];
+}
+
+
+/* =========================
+   FILTERING
+========================= */
 
 function ingredientMatchesSearch(
   ingredient
 ) {
   const query =
-    normalizeText(state.search);
+    normalizeText(
+      state.search
+    );
 
   if (!query) {
     return true;
   }
 
+  const meta =
+    getMeta(
+      ingredient.id
+    );
+
   const searchableValues = [
     ingredient.name,
     ingredient.id,
+    ingredient.category,
+    meta.quantity,
+    meta.note,
     ...(ingredient.aliases ?? [])
   ];
 
@@ -134,7 +319,9 @@ function ingredientMatchesSearch(
 
 function getVisibleItems() {
   return [...state.shopping]
-    .map(getIngredient)
+    .map(
+      getIngredient
+    )
     .filter(Boolean)
     .filter(
       ingredientMatchesSearch
@@ -142,18 +329,32 @@ function getVisibleItems() {
 }
 
 
-function groupItems(items) {
+/* =========================
+   GROUPING
+========================= */
+
+function groupItems(
+  items
+) {
   return items.reduce(
-    (groups, ingredient) => {
+    (
+      groups,
+      ingredient
+    ) => {
 
       const category =
         ingredient.category
         || "other";
 
-      groups[category] ??= [];
+      groups[
+        category
+      ] ??= [];
 
-      groups[category]
-        .push(ingredient);
+      groups[
+        category
+      ].push(
+        ingredient
+      );
 
       return groups;
 
@@ -163,6 +364,10 @@ function groupItems(items) {
 }
 
 
+/* =========================
+   SHOPPING ROW
+========================= */
+
 function createShoppingRow(
   ingredient
 ) {
@@ -171,8 +376,13 @@ function createShoppingRow(
       ingredient.id
     );
 
+  const meta =
+    getMeta(
+      ingredient.id
+    );
+
   return `
-    <div
+    <article
       class="
         shopping-row
         ${hasIngredient
@@ -184,6 +394,7 @@ function createShoppingRow(
 
       <label
         class="shopping-row__have"
+        title="I have this"
       >
 
         <input
@@ -207,19 +418,81 @@ function createShoppingRow(
         class="shopping-row__content"
       >
 
-        <strong
-          class="shopping-row__name"
+        <div
+          class="shopping-row__heading"
         >
-          ${ingredient.name}
-        </strong>
 
-        <span
-          class="shopping-row__status"
+          <strong
+            class="shopping-row__name"
+          >
+            ${ingredient.name}
+          </strong>
+
+          <span
+            class="
+              shopping-row__status
+              ${hasIngredient
+                ? "is-owned"
+                : ""}
+            "
+          >
+            ${hasIngredient
+              ? "Have"
+              : "Need"}
+          </span>
+
+        </div>
+
+
+        <div
+          class="shopping-row__details"
         >
-          ${hasIngredient
-            ? "You have this"
-            : "Need to buy"}
-        </span>
+
+          <label
+            class="shopping-detail-field"
+          >
+
+            <span>
+              Qty
+            </span>
+
+            <input
+              type="text"
+              value="${escapeAttribute(
+                meta.quantity
+              )}"
+              placeholder="1"
+              maxlength="30"
+              data-shopping-quantity="${ingredient.id}"
+            >
+
+          </label>
+
+
+          <label
+            class="
+              shopping-detail-field
+              shopping-detail-field--note
+            "
+          >
+
+            <span>
+              Note
+            </span>
+
+            <input
+              type="text"
+              value="${escapeAttribute(
+                meta.note
+              )}"
+              placeholder="Optional"
+              maxlength="100"
+              data-shopping-note="${ingredient.id}"
+            >
+
+          </label>
+
+        </div>
 
       </div>
 
@@ -228,22 +501,55 @@ function createShoppingRow(
         class="shopping-row__remove"
         type="button"
         data-remove-shopping="${ingredient.id}"
-        aria-label="Remove ${ingredient.name} from shopping list"
+        aria-label="Remove ${ingredient.name}"
       >
         ×
       </button>
 
-    </div>
+    </article>
   `;
 }
 
+
+/* =========================
+   SAFE HTML ATTRIBUTE
+========================= */
+
+function escapeAttribute(
+  value = ""
+) {
+  return String(value)
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    );
+}
+
+
+/* =========================
+   CATEGORY UI
+========================= */
 
 function createCategory(
   category,
   ingredients
 ) {
   const meta =
-    CATEGORY_META[category]
+    CATEGORY_META[
+      category
+    ]
     ?? CATEGORY_META.other;
 
   return `
@@ -255,7 +561,9 @@ function createCategory(
         class="shopping-category__header"
       >
 
-        <span>
+        <span
+          class="shopping-category__icon"
+        >
           ${meta.icon}
         </span>
 
@@ -263,25 +571,33 @@ function createCategory(
           ${meta.label}
         </strong>
 
+        <span
+          class="shopping-category__count"
+        >
+          ${ingredients.length}
+        </span>
+
       </div>
 
 
       <div
         class="shopping-category__items"
       >
-
         ${ingredients
           .map(
             createShoppingRow
           )
           .join("")}
-
       </div>
 
     </section>
   `;
 }
 
+
+/* =========================
+   RENDER
+========================= */
 
 function renderShopping() {
   const container =
@@ -293,7 +609,6 @@ function renderShopping() {
     return;
   }
 
-
   const items =
     getVisibleItems();
 
@@ -301,23 +616,31 @@ function renderShopping() {
   if (
     items.length === 0
   ) {
+
+    const hasShoppingItems =
+      state.shopping.size > 0;
+
     container.innerHTML = `
-      <div
-        class="empty-state"
-      >
+      <div class="empty-state">
 
         <div
           class="empty-state__icon"
         >
-          🛒
+          ${hasShoppingItems
+            ? "🔎"
+            : "🛒"}
         </div>
 
         <strong>
-          Shopping list is empty
+          ${hasShoppingItems
+            ? "No matching items"
+            : "Shopping list is empty"}
         </strong>
 
         <span>
-          Add ingredients from your Pantry.
+          ${hasShoppingItems
+            ? "Try another search."
+            : "Add ingredients from Pantry or add something above."}
         </span>
 
       </div>
@@ -330,11 +653,15 @@ function renderShopping() {
   const groups =
     groupItems(items);
 
-
   container.innerHTML =
     Object.entries(groups)
       .map(
-        ([category, ingredients]) =>
+        (
+          [
+            category,
+            ingredients
+          ]
+        ) =>
           createCategory(
             category,
             ingredients
@@ -344,64 +671,424 @@ function renderShopping() {
 }
 
 
+function renderCount() {
+  const counter =
+    document.querySelector(
+      "#shoppingCount"
+    );
+
+  if (!counter) {
+    return;
+  }
+
+  const count =
+    state.shopping.size;
+
+  counter.textContent =
+    `${count} ${
+      count === 1
+        ? "item"
+        : "items"
+    }`;
+}
+
+
+function render() {
+  renderShopping();
+
+  renderCount();
+
+  updateHistoryButtons();
+}
+
+
+/* =========================
+   CUSTOM ITEMS
+========================= */
+
+function findExistingByName(
+  name
+) {
+  const normalized =
+    normalizeText(name);
+
+  const standard =
+    state.ingredients.find(
+      (ingredient) =>
+        normalizeText(
+          ingredient.name
+        ) === normalized
+        ||
+        ingredient.aliases?.some(
+          (alias) =>
+            normalizeText(
+              alias
+            ) === normalized
+        )
+    );
+
+  if (standard) {
+    return standard;
+  }
+
+  return Object.values(
+    state.customIngredients
+  ).find(
+    (ingredient) =>
+      normalizeText(
+        ingredient.name
+      ) === normalized
+  );
+}
+
+
+function createCustomIngredient(
+  name
+) {
+  const baseSlug =
+    createSlug(name)
+    || "item";
+
+  let ingredientId =
+    `custom-${baseSlug}`;
+
+  let number = 2;
+
+  while (
+    state.customIngredients[
+      ingredientId
+    ]
+  ) {
+    ingredientId =
+      `custom-${baseSlug}-${number}`;
+
+    number += 1;
+  }
+
+  const ingredient = {
+    id: ingredientId,
+    name:
+      name.trim(),
+    category:
+      "custom",
+    aliases:
+      []
+  };
+
+  state.customIngredients[
+    ingredientId
+  ] = ingredient;
+
+  return ingredient;
+}
+
+
+function addShoppingItem(
+  name
+) {
+  const cleanName =
+    name.trim();
+
+  if (!cleanName) {
+    return;
+  }
+
+  const existing =
+    findExistingByName(
+      cleanName
+    );
+
+  const ingredient =
+    existing
+    ?? createCustomIngredient(
+      cleanName
+    );
+
+  if (
+    state.shopping.has(
+      ingredient.id
+    )
+  ) {
+    return;
+  }
+
+  pushHistory();
+
+  state.shopping.add(
+    ingredient.id
+  );
+
+  getMeta(
+    ingredient.id
+  );
+
+  saveState();
+
+  render();
+}
+
+
+/* =========================
+   HAVE STATUS
+========================= */
+
 function toggleHaveStatus(
   ingredientId,
   checked
 ) {
+  pushHistory();
+
   if (checked) {
+
     state.pantry.add(
       ingredientId
     );
+
   } else {
+
     state.pantry.delete(
       ingredientId
     );
+
   }
 
-  savePantry();
+  saveState();
 
-  renderShopping();
+  render();
 }
 
+
+/* =========================
+   META
+========================= */
+
+function updateQuantity(
+  ingredientId,
+  value
+) {
+  const meta =
+    getMeta(
+      ingredientId
+    );
+
+  meta.quantity =
+    value.trim();
+
+  saveState();
+}
+
+
+function updateNote(
+  ingredientId,
+  value
+) {
+  const meta =
+    getMeta(
+      ingredientId
+    );
+
+  meta.note =
+    value.trim();
+
+  saveState();
+}
+
+
+/* =========================
+   REMOVE
+========================= */
 
 function removeShoppingItem(
   ingredientId
 ) {
+  pushHistory();
+
   state.shopping.delete(
     ingredientId
   );
 
-  saveShopping();
+  delete state.shoppingMeta[
+    ingredientId
+  ];
 
-  renderShopping();
+
+  if (
+    ingredientId.startsWith(
+      "custom-"
+    )
+  ) {
+    delete state.customIngredients[
+      ingredientId
+    ];
+  }
+
+  saveState();
+
+  render();
 }
 
+
+/* =========================
+   CLEAR
+========================= */
 
 function clearShopping() {
+  if (
+    state.shopping.size === 0
+  ) {
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      "Clear the entire shopping list?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  pushHistory();
+
+
+  [...state.shopping]
+    .filter(
+      (ingredientId) =>
+        ingredientId.startsWith(
+          "custom-"
+        )
+    )
+    .forEach(
+      (ingredientId) => {
+
+        delete state.customIngredients[
+          ingredientId
+        ];
+
+      }
+    );
+
+
   state.shopping.clear();
 
-  saveShopping();
+  state.shoppingMeta = {};
 
-  renderShopping();
+  saveState();
+
+  render();
 }
 
 
-function setupEvents() {
+/* =========================
+   UNDO / REDO
+========================= */
+
+function undo() {
+  if (
+    state.history.length === 0
+  ) {
+    return;
+  }
+
+  state.future.push(
+    cloneSnapshot()
+  );
+
+  const previous =
+    state.history.pop();
+
+  restoreSnapshot(
+    previous
+  );
+}
+
+
+function redo() {
+  if (
+    state.future.length === 0
+  ) {
+    return;
+  }
+
+  state.history.push(
+    cloneSnapshot()
+  );
+
+  const next =
+    state.future.pop();
+
+  restoreSnapshot(
+    next
+  );
+}
+
+
+function updateHistoryButtons() {
+  const undoButton =
+    document.querySelector(
+      "#undoButton"
+    );
+
+  const redoButton =
+    document.querySelector(
+      "#redoButton"
+    );
+
+  if (undoButton) {
+    undoButton.disabled =
+      state.history.length === 0;
+  }
+
+  if (redoButton) {
+    redoButton.disabled =
+      state.future.length === 0;
+  }
+}
+
+
+/* =========================
+   EVENTS
+========================= */
+
+function setupAddForm() {
+  const form =
+    document.querySelector(
+      "#shoppingAddForm"
+    );
+
+  const input =
+    document.querySelector(
+      "#shoppingItemName"
+    );
+
+  form?.addEventListener(
+    "submit",
+    (event) => {
+
+      event.preventDefault();
+
+      if (!input) {
+        return;
+      }
+
+      addShoppingItem(
+        input.value
+      );
+
+      input.value = "";
+
+      input.focus();
+
+    }
+  );
+}
+
+
+function setupSearch() {
   const search =
     document.querySelector(
       "#shoppingSearch"
     );
-
-  const list =
-    document.querySelector(
-      "#shoppingList"
-    );
-
-  const clearButton =
-    document.querySelector(
-      "#clearShoppingButton"
-    );
-
 
   search?.addEventListener(
     "input",
@@ -414,25 +1101,80 @@ function setupEvents() {
 
     }
   );
+}
+
+
+function setupShoppingListEvents() {
+  const list =
+    document.querySelector(
+      "#shoppingList"
+    );
 
 
   list?.addEventListener(
     "change",
     (event) => {
 
-      const checkbox =
+      const haveCheckbox =
         event.target.closest(
           "[data-have-ingredient]"
         );
 
-      if (!checkbox) {
+      if (haveCheckbox) {
+
+        toggleHaveStatus(
+          haveCheckbox
+            .dataset
+            .haveIngredient,
+
+          haveCheckbox.checked
+        );
+
+      }
+
+    }
+  );
+
+
+  list?.addEventListener(
+    "input",
+    (event) => {
+
+      const quantityInput =
+        event.target.closest(
+          "[data-shopping-quantity]"
+        );
+
+      if (quantityInput) {
+
+        updateQuantity(
+          quantityInput
+            .dataset
+            .shoppingQuantity,
+
+          quantityInput.value
+        );
+
         return;
       }
 
-      toggleHaveStatus(
-        checkbox.dataset.haveIngredient,
-        checkbox.checked
-      );
+
+      const noteInput =
+        event.target.closest(
+          "[data-shopping-note]"
+        );
+
+      if (noteInput) {
+
+        updateNote(
+          noteInput
+            .dataset
+            .shoppingNote,
+
+          noteInput.value
+        );
+
+      }
 
     }
   );
@@ -452,19 +1194,62 @@ function setupEvents() {
       }
 
       removeShoppingItem(
-        removeButton.dataset.removeShopping
+        removeButton
+          .dataset
+          .removeShopping
       );
 
     }
   );
-
-
-  clearButton?.addEventListener(
-    "click",
-    clearShopping
-  );
 }
 
+
+function setupToolbar() {
+  document
+    .querySelector(
+      "#undoButton"
+    )
+    ?.addEventListener(
+      "click",
+      undo
+    );
+
+
+  document
+    .querySelector(
+      "#redoButton"
+    )
+    ?.addEventListener(
+      "click",
+      redo
+    );
+
+
+  document
+    .querySelector(
+      "#clearShoppingButton"
+    )
+    ?.addEventListener(
+      "click",
+      clearShopping
+    );
+}
+
+
+function setupEvents() {
+  setupAddForm();
+
+  setupSearch();
+
+  setupShoppingListEvents();
+
+  setupToolbar();
+}
+
+
+/* =========================
+   INGREDIENT DATA
+========================= */
 
 async function loadIngredients() {
   const response =
@@ -483,18 +1268,56 @@ async function loadIngredients() {
 }
 
 
+/* =========================
+   INIT
+========================= */
+
 async function init() {
   loadState();
 
   setupEvents();
 
   try {
+
     await loadIngredients();
 
-    renderShopping();
+    render();
 
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      error
+    );
+
+    const container =
+      document.querySelector(
+        "#shoppingList"
+      );
+
+    if (container) {
+
+      container.innerHTML = `
+        <div class="empty-state">
+
+          <div
+            class="empty-state__icon"
+          >
+            ⚠️
+          </div>
+
+          <strong>
+            Unable to load Shopping
+          </strong>
+
+          <span>
+            Refresh the page and try again.
+          </span>
+
+        </div>
+      `;
+
+    }
+
   }
 }
 
