@@ -1,8 +1,16 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "anongulamtoday",
-  "compatibility_date": "2026-08-19",
-  "assets": {
-    "directory": "./dist"
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "anongulamtoday",
+	"compatibility_date": "2026-08-19",
+	"assets": {
+		"directory": "./dist"
+	},
+	"d1_databases": [
+		{
+			"binding": "db",
+			"database_name": "anongulamdb",
+			"database_id": "da9fee4d-7e38-40b9-a009-d7ce067111ca",
+			"remote": true
+		}
+	]
 }
