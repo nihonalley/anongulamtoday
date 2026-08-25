@@ -3487,3 +3487,245 @@ input:checked
 .ingredient-status--missing {
   color: #a65312;
 }
+
+/* =========================================================
+   RECIPE SERVINGS
+========================================================= */
+
+.recipe-serving-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin: 16px 0;
+
+  padding: 12px 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-yellow-soft);
+}
+
+
+.recipe-serving-control__label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.recipe-serving-control__label strong {
+  font-size: 0.82rem;
+}
+
+
+.recipe-serving-control__label small {
+  color: var(--color-muted);
+
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+
+.recipe-serving-stepper {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+.recipe-serving-stepper__button {
+  display: grid;
+  place-items: center;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+
+  background: white;
+
+  color: var(--color-text);
+
+  font-size: 1.25rem;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+}
+
+
+.recipe-serving-stepper__button:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+
+
+.recipe-serving-stepper__button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+
+.recipe-serving-stepper__button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.3;
+}
+
+
+.recipe-serving-stepper__value {
+  min-width: 54px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+}
+
+
+.recipe-serving-stepper__value strong {
+  font-size: 1rem;
+}
+
+
+.recipe-serving-stepper__value small {
+  margin-top: 4px;
+
+  color: var(--color-muted);
+
+  font-size: 0.6rem;
+}
+
+
+/* =========================================================
+   INGREDIENT ROWS
+========================================================= */
+
+.recipe-detail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-bottom: 8px;
+}
+
+
+.recipe-detail-heading h4 {
+  margin: 0;
+}
+
+
+.recipe-detail-heading small {
+  color: var(--color-muted);
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+
+.recipe-ingredient-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  width: 100%;
+}
+
+
+.recipe-ingredient-row strong {
+  flex: 1;
+}
+
+
+.recipe-ingredient-amount {
+  flex: 0 0 auto;
+
+  text-align: right;
+
+  font-weight: 800;
+}
+
+
+.ingredient-alternative {
+  color: var(--color-muted);
+}
+
+
+/* =========================================================
+   RECIPE SOURCE
+========================================================= */
+
+.recipe-source {
+  display: flex;
+  flex-wrap: wrap;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  margin-top: 18px;
+  padding-top: 12px;
+
+  border-top: 1px solid var(--color-border);
+
+  color: var(--color-muted);
+
+  font-size: 0.68rem;
+}
+
+
+.recipe-source a {
+  color: var(--color-primary-dark);
+
+  font-weight: 800;
+
+  text-decoration: none;
+}
+
+
+.recipe-source a:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   MOBILE SERVINGS
+========================================================= */
+
+@media (max-width: 520px) {
+
+  .recipe-serving-control {
+    gap: 10px;
+  }
+
+
+  .recipe-serving-stepper__button {
+    width: 34px;
+    height: 34px;
+  }
+
+
+  .recipe-serving-stepper__value {
+    min-width: 46px;
+  }
+
+}

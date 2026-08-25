@@ -3,6 +3,7 @@ import {
   loadList
 } from "./storage.js";
 
+
 import {
   loadRecipes,
   calculateRecipeMatch,
@@ -10,6 +11,16 @@ import {
   filterRecipes,
   pickRandomRecipe
 } from "./recipes.js";
+
+
+import {
+  SERVING_PRESETS,
+  MIN_SERVINGS,
+  MAX_SERVINGS,
+  clampServings,
+  getServingCategory,
+  scaleRecipeIngredients
+} from "./servings.js";
 
 
 /* =========================================================
@@ -24,8 +35,11 @@ const SURPRISE_HISTORY_LIMIT = 5;
 ========================================================= */
 
 const SELECTORS = {
-  advancedToggle: "#advancedToggle",
-  advancedPanel: "#advancedPanel",
+  advancedToggle:
+    "#advancedToggle",
+
+  advancedPanel:
+    "#advancedPanel",
 
   filterButtons:
     "[data-filter-group][data-filter-value]",
@@ -62,48 +76,103 @@ const SELECTORS = {
 
 const FILTER_LABELS = {
   cuisine: {
-    filipino: "Filipino",
-    japanese: "Japanese",
-    korean: "Korean",
-    chinese: "Chinese",
-    vietnamese: "Vietnamese",
-    european: "European",
-    american: "American",
-    mediterranean: "Mediterranean"
+    filipino:
+      "Filipino",
+
+    japanese:
+      "Japanese",
+
+    korean:
+      "Korean",
+
+    chinese:
+      "Chinese",
+
+    vietnamese:
+      "Vietnamese",
+
+    european:
+      "European",
+
+    american:
+      "American",
+
+    mediterranean:
+      "Mediterranean"
   },
 
   cookingStyle: {
-    fried: "Fried",
-    stew: "Stew",
-    soup: "Soup",
-    grilled: "Grilled",
-    baked: "Baked",
-    "stir-fry": "Stir-fry",
-    steamed: "Steamed",
-    "air-fryer": "Air Fryer"
+    fried:
+      "Fried",
+
+    stew:
+      "Stew",
+
+    soup:
+      "Soup",
+
+    grilled:
+      "Grilled",
+
+    baked:
+      "Baked",
+
+    "stir-fry":
+      "Stir-fry",
+
+    steamed:
+      "Steamed",
+
+    "air-fryer":
+      "Air Fryer"
   },
 
   diet: {
-    "kid-friendly": "Kid-friendly",
-    healthy: "Healthy",
-    "dairy-free": "Dairy-free",
-    "gluten-free": "Gluten-free",
-    vegetarian: "Vegetarian",
-    spicy: "Spicy"
+    "kid-friendly":
+      "Kid-friendly",
+
+    healthy:
+      "Healthy",
+
+    "dairy-free":
+      "Dairy-free",
+
+    "gluten-free":
+      "Gluten-free",
+
+    vegetarian:
+      "Vegetarian",
+
+    spicy:
+      "Spicy"
   },
 
   time: {
-    15: "≤ 15 mins",
-    30: "≤ 30 mins",
-    45: "≤ 45 mins",
-    60: "≤ 60 mins"
+    15:
+      "≤ 15 mins",
+
+    30:
+      "≤ 30 mins",
+
+    45:
+      "≤ 45 mins",
+
+    60:
+      "≤ 60 mins"
   },
 
   servings: {
-    one: "One",
-    couple: "Couple",
-    family: "Family",
-    party: "Party"
+    one:
+      "One",
+
+    couple:
+      "Couple",
+
+    family:
+      "Family",
+
+    party:
+      "Party"
   }
 };
 
@@ -148,7 +217,20 @@ const state = {
     [],
 
   expandedRecipeIds:
-    new Set()
+    new Set(),
+
+  /*
+   * Each recipe remembers its own
+   * selected serving count.
+   *
+   * Example:
+   * {
+   *   "chicken-adobo": 5,
+   *   "garlic-butter-shrimp": 2
+   * }
+   */
+  servingsByRecipe:
+    {}
 };
 
 
@@ -199,7 +281,9 @@ function ingredientIdToLabel(
 ) {
   return ingredientId
     .split("-")
-    .map(capitalize)
+    .map(
+      capitalize
+    )
     .join(" ");
 }
 
@@ -279,11 +363,17 @@ function updateFilterState(
   }
 
   if (
-    groupState.has(value)
+    groupState.has(
+      value
+    )
   ) {
-    groupState.delete(value);
+    groupState.delete(
+      value
+    );
   } else {
-    groupState.add(value);
+    groupState.add(
+      value
+    );
   }
 
   clearCurrentSurprise();
@@ -309,13 +399,17 @@ function updateFilterButtonStates() {
   ).forEach(
     (button) => {
       const group =
-        button.dataset.filterGroup;
+        button.dataset
+          .filterGroup;
 
       const value =
-        button.dataset.filterValue;
+        button.dataset
+          .filterValue;
 
       const selected =
-        state.filters[group]?.has(
+        state.filters[
+          group
+        ]?.has(
           value
         );
 
@@ -411,12 +505,15 @@ function renderActiveFilters() {
 
             <button
               type="button"
+
               data-remove-filter-group="${escapeHtml(
                 filter.group
               )}"
+
               data-remove-filter-value="${escapeHtml(
                 filter.value
               )}"
+
               aria-label="Remove ${escapeHtml(
                 filter.label
               )}"
@@ -457,8 +554,11 @@ function removeFilter(
   group,
   value
 ) {
-  state.filters[group]
-    ?.delete(value);
+  state.filters[
+    group
+  ]?.delete(
+    value
+  );
 
   clearCurrentSurprise();
 
@@ -491,32 +591,8 @@ function getRankedRecipes() {
 
 
 /* =========================================================
-   INGREDIENT MATCH HELPERS
+   PANTRY INGREDIENT MATCH
 ========================================================= */
-
-function pantryHasIngredient(
-  ingredient
-) {
-  if (
-    state.pantry.has(
-      ingredient.id
-    )
-  ) {
-    return true;
-  }
-
-  return (
-    ingredient.substitutes
-      ?.some(
-        (substituteId) =>
-          state.pantry.has(
-            substituteId
-          )
-      )
-    ?? false
-  );
-}
-
 
 function getIngredientMatchType(
   ingredient
@@ -527,8 +603,11 @@ function getIngredientMatchType(
     )
   ) {
     return {
-      type: "available",
-      substitute: null
+      type:
+        "available",
+
+      substitute:
+        null
     };
   }
 
@@ -543,14 +622,19 @@ function getIngredientMatchType(
 
   if (substitute) {
     return {
-      type: "substitute",
+      type:
+        "substitute",
+
       substitute
     };
   }
 
   return {
-    type: "missing",
-    substitute: null
+    type:
+      "missing",
+
+    substitute:
+      null
   };
 }
 
@@ -564,18 +648,7 @@ function getRecipeStatus(
 ) {
   if (
     match.total === 0
-  ) {
-    return {
-      className:
-        "is-ready",
-
-      label:
-        "✓ Ready to cook"
-    };
-  }
-
-  if (
-    match.canCook
+    || match.canCook
   ) {
     return {
       className:
@@ -609,6 +682,218 @@ function getRecipeStatus(
 
 
 /* =========================================================
+   SERVING STATE
+========================================================= */
+
+function getRecipeServingCount(
+  recipe
+) {
+  const stored =
+    state.servingsByRecipe[
+      recipe.id
+    ];
+
+  if (
+    Number.isFinite(
+      stored
+    )
+  ) {
+    return clampServings(
+      stored
+    );
+  }
+
+  const base =
+    clampServings(
+      recipe.baseServings
+      ?? 2
+    );
+
+  state.servingsByRecipe[
+    recipe.id
+  ] = base;
+
+  return base;
+}
+
+
+function setRecipeServingCount(
+  recipeId,
+  servings
+) {
+  state.servingsByRecipe[
+    recipeId
+  ] =
+    clampServings(
+      servings
+    );
+}
+
+
+function changeRecipeServings(
+  recipeId,
+  change
+) {
+  const recipe =
+    state.recipes.find(
+      (item) =>
+        item.id === recipeId
+    );
+
+  if (!recipe) {
+    return;
+  }
+
+  const current =
+    getRecipeServingCount(
+      recipe
+    );
+
+  setRecipeServingCount(
+    recipeId,
+    current + change
+  );
+
+  /*
+   * Re-render so every quantity
+   * updates immediately.
+   */
+
+  renderRecipes();
+}
+
+
+/* =========================================================
+   SERVING LABEL
+========================================================= */
+
+function getServingLabel(
+  servings
+) {
+  const category =
+    getServingCategory(
+      servings
+    );
+
+  const preset =
+    SERVING_PRESETS[
+      category
+    ];
+
+  if (!preset) {
+    return "";
+  }
+
+  return `
+    ${preset.emoji}
+    ${preset.label}
+  `;
+}
+
+
+/* =========================================================
+   SERVING CONTROL
+========================================================= */
+
+function createServingControl(
+  recipe
+) {
+  const servings =
+    getRecipeServingCount(
+      recipe
+    );
+
+  const minusDisabled =
+    servings <= MIN_SERVINGS;
+
+  const plusDisabled =
+    servings >= MAX_SERVINGS;
+
+  return `
+    <div class="recipe-serving-control">
+
+      <div class="recipe-serving-control__label">
+        <strong>
+          Servings
+        </strong>
+
+        <small>
+          ${getServingLabel(
+            servings
+          )}
+        </small>
+      </div>
+
+      <div class="recipe-serving-stepper">
+
+        <button
+          type="button"
+
+          class="recipe-serving-stepper__button"
+
+          data-serving-change="-1"
+
+          data-serving-recipe="${escapeHtml(
+            recipe.id
+          )}"
+
+          aria-label="Decrease servings"
+
+          ${
+            minusDisabled
+              ? "disabled"
+              : ""
+          }
+        >
+          −
+        </button>
+
+        <div class="recipe-serving-stepper__value">
+
+          <strong>
+            ${servings}
+          </strong>
+
+          <small>
+            ${
+              servings === 1
+                ? "person"
+                : "people"
+            }
+          </small>
+
+        </div>
+
+        <button
+          type="button"
+
+          class="recipe-serving-stepper__button"
+
+          data-serving-change="1"
+
+          data-serving-recipe="${escapeHtml(
+            recipe.id
+          )}"
+
+          aria-label="Increase servings"
+
+          ${
+            plusDisabled
+              ? "disabled"
+              : ""
+          }
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
    INGREDIENT LIST
 ========================================================= */
 
@@ -622,16 +907,40 @@ function createIngredientList(
     return "";
   }
 
+  const targetServings =
+    getRecipeServingCount(
+      recipe
+    );
+
+  const scaledIngredients =
+    scaleRecipeIngredients(
+      recipe,
+      targetServings
+    );
+
   return `
     <div class="recipe-detail-section">
 
-      <h4>
-        Ingredients
-      </h4>
+      <div class="recipe-detail-heading">
+
+        <h4>
+          Ingredients
+        </h4>
+
+        <small>
+          For ${targetServings}
+          ${
+            targetServings === 1
+              ? "person"
+              : "people"
+          }
+        </small>
+
+      </div>
 
       <ul class="recipe-detail-list">
 
-        ${recipe.ingredients
+        ${scaledIngredients
           .map(
             (ingredient) => {
               const substitutes =
@@ -653,7 +962,12 @@ function createIngredientList(
                   === "available"
                 ) {
                   pantryStatus = `
-                    <small class="ingredient-status ingredient-status--available">
+                    <small
+                      class="
+                        ingredient-status
+                        ingredient-status--available
+                      "
+                    >
                       ✓ You have this
                     </small>
                   `;
@@ -664,7 +978,12 @@ function createIngredientList(
                   === "substitute"
                 ) {
                   pantryStatus = `
-                    <small class="ingredient-status ingredient-status--available">
+                    <small
+                      class="
+                        ingredient-status
+                        ingredient-status--available
+                      "
+                    >
                       ✓ You have ${escapeHtml(
                         ingredientIdToLabel(
                           matchInfo.substitute
@@ -679,7 +998,12 @@ function createIngredientList(
                   === "missing"
                 ) {
                   pantryStatus = `
-                    <small class="ingredient-status ingredient-status--missing">
+                    <small
+                      class="
+                        ingredient-status
+                        ingredient-status--missing
+                      "
+                    >
                       Missing
                     </small>
                   `;
@@ -689,7 +1013,7 @@ function createIngredientList(
               const substituteText =
                 substitutes.length > 0
                   ? `
-                    <small>
+                    <small class="ingredient-alternative">
                       Alternative:
                       ${substitutes
                         .map(
@@ -703,7 +1027,8 @@ function createIngredientList(
               return `
                 <li>
 
-                  <span>
+                  <div class="recipe-ingredient-row">
+
                     <strong>
                       ${escapeHtml(
                         ingredientIdToLabel(
@@ -712,14 +1037,14 @@ function createIngredientList(
                       )}
                     </strong>
 
-                    ${
-                      ingredient.amount
-                        ? ` — ${escapeHtml(
-                            ingredient.amount
-                          )}`
-                        : ""
-                    }
-                  </span>
+                    <span class="recipe-ingredient-amount">
+                      ${escapeHtml(
+                        ingredient.displayAmount
+                        || ""
+                      )}
+                    </span>
+
+                  </div>
 
                   ${pantryStatus}
 
@@ -858,6 +1183,91 @@ function createNotes(
 
 
 /* =========================================================
+   SOURCE
+========================================================= */
+
+function createRecipeSource(
+  recipe
+) {
+  const source =
+    recipe.source;
+
+  if (!source) {
+    return "";
+  }
+
+  /*
+   * Built-in recipes stay subtle.
+   */
+
+  if (
+    source.type === "original"
+  ) {
+    return `
+      <div class="recipe-source">
+        <span>
+          Recipe by
+          <strong>
+            ${escapeHtml(
+              source.name
+            )}
+          </strong>
+        </span>
+      </div>
+    `;
+  }
+
+  /*
+   * Future AI/web recipes retain
+   * a clear original source.
+   */
+
+  if (
+    source.type === "web"
+    && source.url
+  ) {
+    return `
+      <div class="recipe-source">
+
+        <span>
+          Source:
+          <strong>
+            ${escapeHtml(
+              source.name
+            )}
+          </strong>
+        </span>
+
+        <a
+          href="${escapeHtml(
+            source.url
+          )}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View original recipe ↗
+        </a>
+
+      </div>
+    `;
+  }
+
+  return `
+    <div class="recipe-source">
+      <span>
+        Source:
+        <strong>
+          ${escapeHtml(
+            source.name
+          )}
+        </strong>
+      </span>
+    </div>
+  `;
+}
+
+
+/* =========================================================
    RECIPE DETAILS
 ========================================================= */
 
@@ -884,6 +1294,10 @@ function createRecipeDetails(
         )}
       </p>
 
+      ${createServingControl(
+        recipe
+      )}
+
       ${createIngredientList(
         recipe
       )}
@@ -897,6 +1311,10 @@ function createRecipeDetails(
       )}
 
       ${createNotes(
+        recipe
+      )}
+
+      ${createRecipeSource(
         recipe
       )}
 
@@ -1021,6 +1439,7 @@ function createRecipeCard(
             : ""
         }
       "
+
       data-recipe-id="${escapeHtml(
         recipe.id
       )}"
@@ -1048,6 +1467,7 @@ function createRecipeCard(
         <button
           class="recipe-card__favorite"
           type="button"
+
           aria-label="Add ${escapeHtml(
             recipe.name
           )} to favorites"
@@ -1076,6 +1496,15 @@ function createRecipeCard(
               recipe.difficulty
               ?? "Easy"
             )}
+          </span>
+
+          <span>
+            🍽 ${recipe.baseServings}
+            ${
+              recipe.baseServings === 1
+                ? "serving"
+                : "servings"
+            }
           </span>
 
         </div>
@@ -1132,6 +1561,23 @@ function createRecipeCard(
           </span>
 
           ${
+            recipe.origin
+              ? `
+                <span
+                  class="
+                    recipe-card__tag
+                    recipe-card__tag--soft
+                  "
+                >
+                  ${escapeHtml(
+                    recipe.origin
+                  )}
+                </span>
+              `
+              : ""
+          }
+
+          ${
             recipe.cookingStyles
               ?.map(
                 (style) => `
@@ -1163,7 +1609,9 @@ function createRecipeCard(
               recipe-card__action
               recipe-card__action--primary
             "
+
             type="button"
+
             data-view-recipe="${escapeHtml(
               recipe.id
             )}"
@@ -1228,7 +1676,7 @@ function createEmptyRecipeState() {
 
 
 /* =========================================================
-   NORMAL BEST MATCHES
+   BEST MATCHES
 ========================================================= */
 
 function renderBestMatches() {
@@ -1252,13 +1700,6 @@ function renderBestMatches() {
 
     return;
   }
-
-  /*
-   * Normal browsing should still
-   * show recipes even with an empty Pantry.
-   *
-   * Pantry simply controls their match status.
-   */
 
   container.innerHTML =
     ranked
@@ -1339,21 +1780,16 @@ function removeRecentRecipes(
 
 
 /* =========================================================
-   FULL SURPRISE POOL
+   FULL SURPRISE
 ========================================================= */
 
 function getFullSurprisePool() {
-  /*
-   * Full Surprise ignores Pantry.
-   * User-selected filters still apply.
-   */
-
   return getFilteredRecipes();
 }
 
 
 /* =========================================================
-   USE WHAT I HAVE POOL
+   PANTRY SURPRISE
 ========================================================= */
 
 function getPantrySurprisePool() {
@@ -1365,11 +1801,6 @@ function getPantrySurprisePool() {
   ) {
     return [];
   }
-
-  /*
-   * Empty Pantry must NEVER stop
-   * the generator.
-   */
 
   if (
     state.pantry.size === 0
@@ -1389,11 +1820,6 @@ function getPantrySurprisePool() {
     return [];
   }
 
-  /*
-   * First priority:
-   * recipes completely cookable.
-   */
-
   const ready =
     ranked.filter(
       (item) =>
@@ -1409,23 +1835,20 @@ function getPantrySurprisePool() {
     );
   }
 
-  /*
-   * Otherwise find recipes with
-   * the fewest missing ingredients.
-   */
-
   const minimumMissing =
     Math.min(
       ...ranked.map(
         (item) =>
-          item.match.missingCount
+          item.match
+            .missingCount
       )
     );
 
   return ranked
     .filter(
       (item) =>
-        item.match.missingCount
+        item.match
+          .missingCount
         === minimumMissing
     )
     .map(
@@ -1455,11 +1878,6 @@ function getSurprisePool() {
 ========================================================= */
 
 function generateSurpriseRecipe() {
-  /*
-   * Refresh Pantry first in case
-   * user changed it on another page.
-   */
-
   loadLocalState();
 
   const checkbox =
@@ -1488,8 +1906,11 @@ function generateSurpriseRecipe() {
         createEmptyRecipeState();
 
       container.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest"
+        behavior:
+          "smooth",
+
+        block:
+          "nearest"
       });
     }
 
@@ -1520,13 +1941,37 @@ function generateSurpriseRecipe() {
   state.expandedRecipeIds
     .clear();
 
+  /*
+   * A newly generated recipe begins
+   * with its intended base servings.
+   */
+
+  if (
+    !Number.isFinite(
+      state.servingsByRecipe[
+        recipe.id
+      ]
+    )
+  ) {
+    state.servingsByRecipe[
+      recipe.id
+    ] =
+      clampServings(
+        recipe.baseServings
+        ?? 2
+      );
+  }
+
   renderRecipes();
 
   getElement(
     SELECTORS.recipeContainer
   )?.scrollIntoView({
-    behavior: "smooth",
-    block: "nearest"
+    behavior:
+      "smooth",
+
+    block:
+      "nearest"
   });
 }
 
@@ -1572,7 +2017,8 @@ function renderSurpriseRecipe() {
       recipe,
       match,
       {
-        surprise: true
+        surprise:
+          true
       }
     );
 }
@@ -1624,8 +2070,11 @@ function toggleRecipeDetails(
   document.querySelector(
     `[data-recipe-id="${recipeId}"]`
   )?.scrollIntoView({
-    behavior: "smooth",
-    block: "nearest"
+    behavior:
+      "smooth",
+
+    block:
+      "nearest"
   });
 }
 
@@ -1746,8 +2195,11 @@ function setupFilterButtons() {
         "click",
         () => {
           updateFilterState(
-            button.dataset.filterGroup,
-            button.dataset.filterValue
+            button.dataset
+              .filterGroup,
+
+            button.dataset
+              .filterValue
           );
 
           refreshUI();
@@ -1812,15 +2264,8 @@ function setupSurpriseGenerator() {
   )?.addEventListener(
     "change",
     () => {
-      /*
-       * Do not generate automatically.
-       *
-       * Changing this checkbox only
-       * changes what the next Surprise
-       * click will do.
-       */
-
-      state.recentSurpriseIds = [];
+      state.recentSurpriseIds =
+        [];
     }
   );
 }
@@ -1836,6 +2281,11 @@ function setupRecipeEvents() {
   )?.addEventListener(
     "click",
     (event) => {
+
+      /* -------------------------
+         VIEW RECIPE
+      ------------------------- */
+
       const viewButton =
         event.target.closest(
           "[data-view-recipe]"
@@ -1850,6 +2300,11 @@ function setupRecipeEvents() {
         return;
       }
 
+
+      /* -------------------------
+         PICK AGAIN
+      ------------------------- */
+
       const pickAgain =
         event.target.closest(
           "[data-pick-again]"
@@ -1857,6 +2312,43 @@ function setupRecipeEvents() {
 
       if (pickAgain) {
         generateSurpriseRecipe();
+
+        return;
+      }
+
+
+      /* -------------------------
+         SERVINGS + / -
+      ------------------------- */
+
+      const servingButton =
+        event.target.closest(
+          "[data-serving-change]"
+        );
+
+      if (servingButton) {
+        const recipeId =
+          servingButton.dataset
+            .servingRecipe;
+
+        const change =
+          Number(
+            servingButton.dataset
+              .servingChange
+          );
+
+        if (
+          recipeId
+          &&
+          Number.isFinite(
+            change
+          )
+        ) {
+          changeRecipeServings(
+            recipeId,
+            change
+          );
+        }
       }
     }
   );
@@ -1872,12 +2364,6 @@ function setupStorageSync() {
     "storage",
     () => {
       loadLocalState();
-
-      /*
-       * Keep a currently generated
-       * recipe on screen, but update
-       * its Pantry status.
-       */
 
       refreshUI();
     }
@@ -1913,6 +2399,32 @@ function setupEvents() {
 async function loadData() {
   state.recipes =
     await loadRecipes();
+
+  /*
+   * Initialize serving values from
+   * each recipe's base serving count.
+   */
+
+  state.recipes
+    .forEach(
+      (recipe) => {
+        if (
+          !Number.isFinite(
+            state.servingsByRecipe[
+              recipe.id
+            ]
+          )
+        ) {
+          state.servingsByRecipe[
+            recipe.id
+          ] =
+            clampServings(
+              recipe.baseServings
+              ?? 2
+            );
+        }
+      }
+    );
 }
 
 

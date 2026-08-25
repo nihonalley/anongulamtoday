@@ -32,7 +32,7 @@ export const RECIPE_SCHEMA = {
     "air-fryer"
   ],
 
-  servings: [
+  servingCategories: [
     "one",
     "couple",
     "family",
@@ -68,8 +68,10 @@ function isObject(
 ) {
   return (
     value !== null
-    && typeof value === "object"
-    && !Array.isArray(value)
+    &&
+    typeof value === "object"
+    &&
+    !Array.isArray(value)
   );
 }
 
@@ -79,8 +81,44 @@ function isNonEmptyString(
 ) {
   return (
     typeof value === "string"
-    && value.trim().length > 0
+    &&
+    value.trim().length > 0
   );
+}
+
+
+function normalizeNullableString(
+  value
+) {
+  return (
+    isNonEmptyString(value)
+      ? value.trim()
+      : null
+  );
+}
+
+
+function normalizeStringArray(
+  value
+) {
+  if (
+    !Array.isArray(value)
+  ) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      value
+        .filter(
+          isNonEmptyString
+        )
+        .map(
+          (item) =>
+            item.trim()
+        )
+    )
+  ];
 }
 
 
@@ -89,8 +127,10 @@ function isValidUrl(
 ) {
   if (
     value === null
-    || value === undefined
-    || value === ""
+    ||
+    value === undefined
+    ||
+    value === ""
   ) {
     return true;
   }
@@ -101,31 +141,12 @@ function isValidUrl(
 
     return (
       url.protocol === "http:"
-      || url.protocol === "https:"
+      ||
+      url.protocol === "https:"
     );
   } catch {
     return false;
   }
-}
-
-
-function normalizeStringArray(
-  value
-) {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return [
-    ...new Set(
-      value
-        .filter(isNonEmptyString)
-        .map(
-          (item) =>
-            item.trim()
-        )
-    )
-  ];
 }
 
 
@@ -136,7 +157,9 @@ function normalizeStringArray(
 function normalizeSource(
   source
 ) {
-  if (!isObject(source)) {
+  if (
+    !isObject(source)
+  ) {
     return {
       type: "original",
       name: "Anong Ulam Today?",
@@ -147,26 +170,30 @@ function normalizeSource(
 
   return {
     type:
-      isNonEmptyString(source.type)
-        ? source.type.trim()
+      isNonEmptyString(
+        source.type
+      )
+        ? source.type
+            .trim()
+            .toLowerCase()
         : "original",
 
     name:
-      isNonEmptyString(source.name)
+      isNonEmptyString(
+        source.name
+      )
         ? source.name.trim()
         : "Anong Ulam Today?",
 
     url:
-      isNonEmptyString(source.url)
-        ? source.url.trim()
-        : null,
+      normalizeNullableString(
+        source.url
+      ),
 
     retrievedAt:
-      isNonEmptyString(
+      normalizeNullableString(
         source.retrievedAt
       )
-        ? source.retrievedAt.trim()
-        : null
   };
 }
 
@@ -178,9 +205,23 @@ function normalizeSource(
 function normalizeIngredient(
   ingredient
 ) {
-  if (!isObject(ingredient)) {
+  if (
+    !isObject(ingredient)
+  ) {
     return null;
   }
+
+  const rawQuantity =
+    ingredient.quantity;
+
+  const quantity =
+    rawQuantity === null
+    ||
+    rawQuantity === undefined
+    ||
+    rawQuantity === ""
+      ? null
+      : Number(rawQuantity);
 
   return {
     id:
@@ -192,12 +233,26 @@ function normalizeIngredient(
             .toLowerCase()
         : "",
 
-    amount:
-      isNonEmptyString(
-        ingredient.amount
+    quantity:
+      Number.isFinite(
+        quantity
       )
-        ? ingredient.amount.trim()
-        : "",
+        ? quantity
+        : null,
+
+    unit:
+      normalizeNullableString(
+        ingredient.unit
+      ),
+
+    amountText:
+      normalizeNullableString(
+        ingredient.amountText
+      ),
+
+    scalable:
+      ingredient.scalable
+      !== false,
 
     required:
       ingredient.required
@@ -221,7 +276,9 @@ function normalizeIngredient(
 function normalizeFlexibleIngredient(
   item
 ) {
-  if (!isObject(item)) {
+  if (
+    !isObject(item)
+  ) {
     return null;
   }
 
@@ -250,20 +307,31 @@ function normalizeFlexibleIngredient(
 export function normalizeRecipe(
   recipe
 ) {
-  if (!isObject(recipe)) {
+  if (
+    !isObject(recipe)
+  ) {
     return null;
   }
 
+  const rawBaseServings =
+    Number(
+      recipe.baseServings
+    );
+
   return {
     id:
-      isNonEmptyString(recipe.id)
+      isNonEmptyString(
+        recipe.id
+      )
         ? recipe.id
             .trim()
             .toLowerCase()
         : "",
 
     name:
-      isNonEmptyString(recipe.name)
+      isNonEmptyString(
+        recipe.name
+      )
         ? recipe.name.trim()
         : "",
 
@@ -325,14 +393,20 @@ export function normalizeRecipe(
         ? recipe.difficulty.trim()
         : "Easy",
 
-    servings:
-      isNonEmptyString(
-        recipe.servings
+    baseServings:
+      Number.isFinite(
+        rawBaseServings
       )
-        ? recipe.servings
-            .trim()
-            .toLowerCase()
-        : "family",
+        ? rawBaseServings
+        : 2,
+
+    servingCategories:
+      normalizeStringArray(
+        recipe.servingCategories
+      ).map(
+        (item) =>
+          item.toLowerCase()
+      ),
 
     spicy:
       recipe.spicy === true,
@@ -412,13 +486,45 @@ function validateIngredient(
   }
 
   if (
-    !isNonEmptyString(
-      ingredient.amount
-    )
+    ingredient.scalable
+    === true
   ) {
-    errors.push(
-      `${prefix}: amount is required.`
-    );
+    if (
+      !Number.isFinite(
+        ingredient.quantity
+      )
+      ||
+      ingredient.quantity <= 0
+    ) {
+      errors.push(
+        `${prefix}: scalable ingredients require a positive quantity.`
+      );
+    }
+
+    if (
+      !isNonEmptyString(
+        ingredient.unit
+      )
+    ) {
+      errors.push(
+        `${prefix}: scalable ingredients require a unit.`
+      );
+    }
+  }
+
+  if (
+    ingredient.scalable
+    === false
+  ) {
+    if (
+      !isNonEmptyString(
+        ingredient.amountText
+      )
+    ) {
+      errors.push(
+        `${prefix}: non-scalable ingredients require amountText.`
+      );
+    }
   }
 
   if (
@@ -428,6 +534,55 @@ function validateIngredient(
   ) {
     errors.push(
       `${prefix}: substitutes must be an array.`
+    );
+  }
+
+  if (
+    ingredient.substitutes
+      ?.includes(
+        ingredient.id
+      )
+  ) {
+    errors.push(
+      `${prefix}: ingredient cannot substitute itself.`
+    );
+  }
+
+  return errors;
+}
+
+
+/* =========================================================
+   FLEXIBLE INGREDIENT VALIDATION
+========================================================= */
+
+function validateFlexibleIngredient(
+  item,
+  recipeId,
+  index
+) {
+  const errors = [];
+
+  const prefix =
+    `${recipeId}.flexibleIngredients[${index}]`;
+
+  if (
+    !isNonEmptyString(
+      item.label
+    )
+  ) {
+    errors.push(
+      `${prefix}: label is required.`
+    );
+  }
+
+  if (
+    !isNonEmptyString(
+      item.note
+    )
+  ) {
+    errors.push(
+      `${prefix}: note is required.`
     );
   }
 
@@ -445,7 +600,9 @@ function validateSource(
 ) {
   const errors = [];
 
-  if (!isObject(source)) {
+  if (
+    !isObject(source)
+  ) {
     return [
       `${recipeId}: source is required.`
     ];
@@ -484,13 +641,14 @@ function validateSource(
   }
 
   /*
-   * AI/web-added recipes must retain
+   * Web recipes must always retain
    * the original source URL.
    */
 
   if (
     source.type === "web"
-    && !isNonEmptyString(
+    &&
+    !isNonEmptyString(
       source.url
     )
   ) {
@@ -512,7 +670,9 @@ export function validateRecipe(
 ) {
   const errors = [];
 
-  if (!isObject(recipe)) {
+  if (
+    !isObject(recipe)
+  ) {
     return [
       "Recipe must be an object."
     ];
@@ -520,7 +680,13 @@ export function validateRecipe(
 
   const recipeId =
     recipe.id
-    || "unknown-recipe";
+    ||
+    "unknown-recipe";
+
+
+  /* -------------------------
+     ID
+  ------------------------- */
 
   if (
     !isNonEmptyString(
@@ -533,6 +699,10 @@ export function validateRecipe(
   }
 
   if (
+    isNonEmptyString(
+      recipe.id
+    )
+    &&
     !/^[a-z0-9]+(?:-[a-z0-9]+)*$/
       .test(
         recipe.id
@@ -542,6 +712,11 @@ export function validateRecipe(
       `${recipeId}: id must use lowercase kebab-case.`
     );
   }
+
+
+  /* -------------------------
+     BASIC INFO
+  ------------------------- */
 
   if (
     !isNonEmptyString(
@@ -585,11 +760,17 @@ export function validateRecipe(
     );
   }
 
+
+  /* -------------------------
+     COOKING STYLE
+  ------------------------- */
+
   if (
     !Array.isArray(
       recipe.cookingStyles
     )
-    || recipe.cookingStyles
+    ||
+    recipe.cookingStyles
       .length === 0
   ) {
     errors.push(
@@ -602,7 +783,9 @@ export function validateRecipe(
           if (
             !RECIPE_SCHEMA
               .cookingStyles
-              .includes(style)
+              .includes(
+                style
+              )
           ) {
             errors.push(
               `${recipeId}: invalid cooking style "${style}".`
@@ -612,16 +795,27 @@ export function validateRecipe(
       );
   }
 
+
+  /* -------------------------
+     TIME
+  ------------------------- */
+
   if (
     !Number.isFinite(
       recipe.timeMinutes
     )
-    || recipe.timeMinutes <= 0
+    ||
+    recipe.timeMinutes <= 0
   ) {
     errors.push(
       `${recipeId}: timeMinutes must be greater than 0.`
     );
   }
+
+
+  /* -------------------------
+     DIFFICULTY
+  ------------------------- */
 
   if (
     !RECIPE_SCHEMA
@@ -635,23 +829,69 @@ export function validateRecipe(
     );
   }
 
+
+  /* -------------------------
+     BASE SERVINGS
+  ------------------------- */
+
   if (
-    !RECIPE_SCHEMA
-      .servings
-      .includes(
-        recipe.servings
-      )
+    !Number.isFinite(
+      recipe.baseServings
+    )
+    ||
+    recipe.baseServings <= 0
   ) {
     errors.push(
-      `${recipeId}: invalid servings value "${recipe.servings}".`
+      `${recipeId}: baseServings must be greater than 0.`
     );
   }
+
+
+  /* -------------------------
+     SERVING CATEGORIES
+  ------------------------- */
+
+  if (
+    !Array.isArray(
+      recipe.servingCategories
+    )
+    ||
+    recipe.servingCategories
+      .length === 0
+  ) {
+    errors.push(
+      `${recipeId}: at least one serving category is required.`
+    );
+  } else {
+    recipe.servingCategories
+      .forEach(
+        (category) => {
+          if (
+            !RECIPE_SCHEMA
+              .servingCategories
+              .includes(
+                category
+              )
+          ) {
+            errors.push(
+              `${recipeId}: invalid serving category "${category}".`
+            );
+          }
+        }
+      );
+  }
+
+
+  /* -------------------------
+     INGREDIENTS
+  ------------------------- */
 
   if (
     !Array.isArray(
       recipe.ingredients
     )
-    || recipe.ingredients
+    ||
+    recipe.ingredients
       .length === 0
   ) {
     errors.push(
@@ -696,16 +936,58 @@ export function validateRecipe(
     }
   }
 
+
+  /* -------------------------
+     FLEXIBLE INGREDIENTS
+  ------------------------- */
+
+  if (
+    !Array.isArray(
+      recipe.flexibleIngredients
+    )
+  ) {
+    errors.push(
+      `${recipeId}: flexibleIngredients must be an array.`
+    );
+  } else {
+    recipe.flexibleIngredients
+      .forEach(
+        (
+          item,
+          index
+        ) => {
+          errors.push(
+            ...validateFlexibleIngredient(
+              item,
+              recipeId,
+              index
+            )
+          );
+        }
+      );
+  }
+
+
+  /* -------------------------
+     STEPS
+  ------------------------- */
+
   if (
     !Array.isArray(
       recipe.steps
     )
-    || recipe.steps.length === 0
+    ||
+    recipe.steps.length === 0
   ) {
     errors.push(
       `${recipeId}: at least one cooking step is required.`
     );
   }
+
+
+  /* -------------------------
+     ADDED BY
+  ------------------------- */
 
   if (
     !RECIPE_SCHEMA
@@ -719,6 +1001,11 @@ export function validateRecipe(
     );
   }
 
+
+  /* -------------------------
+     SOURCE
+  ------------------------- */
+
   errors.push(
     ...validateSource(
       recipe.source,
@@ -726,18 +1013,23 @@ export function validateRecipe(
     )
   );
 
+
   return errors;
 }
 
 
 /* =========================================================
-   LIBRARY VALIDATION
+   RECIPE LIBRARY VALIDATION
 ========================================================= */
 
 export function validateRecipeLibrary(
   recipes
 ) {
-  if (!Array.isArray(recipes)) {
+  if (
+    !Array.isArray(
+      recipes
+    )
+  ) {
     return {
       valid: false,
 
@@ -809,11 +1101,13 @@ export function validateRecipeLibrary(
 
 
 /* =========================================================
-   LOAD
+   LOAD RECIPES
 ========================================================= */
 
 export async function loadRecipes() {
-  if (recipeCache) {
+  if (
+    recipeCache
+  ) {
     return recipeCache;
   }
 
@@ -822,7 +1116,9 @@ export async function loadRecipes() {
       RECIPES_URL
     );
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
     throw new Error(
       "Unable to load recipes."
     );
@@ -832,7 +1128,9 @@ export async function loadRecipes() {
     await response.json();
 
   const normalized =
-    Array.isArray(rawRecipes)
+    Array.isArray(
+      rawRecipes
+    )
       ? rawRecipes
           .map(
             normalizeRecipe
@@ -845,11 +1143,21 @@ export async function loadRecipes() {
       normalized
     );
 
-  if (!validation.valid) {
+  if (
+    !validation.valid
+  ) {
     console.error(
-      "Recipe library validation failed:",
-      validation.errors
+      "Recipe library validation failed:"
     );
+
+    validation.errors
+      .forEach(
+        (error) => {
+          console.error(
+            `• ${error}`
+          );
+        }
+      );
 
     throw new Error(
       `Recipe library contains ${validation.errors.length} validation error(s). Check the browser console.`
@@ -860,6 +1168,16 @@ export async function loadRecipes() {
     normalized;
 
   return recipeCache;
+}
+
+
+/* =========================================================
+   CACHE RESET
+========================================================= */
+
+export function clearRecipeCache() {
+  recipeCache =
+    null;
 }
 
 
@@ -877,7 +1195,8 @@ export function getRequiredIngredients(
           ingredient.required
           !== false
       )
-    ?? []
+    ??
+    []
   );
 }
 
@@ -906,7 +1225,8 @@ function hasIngredientOrSubstitute(
             substituteId
           )
       )
-    ?? false
+    ??
+    false
   );
 }
 
@@ -920,11 +1240,13 @@ export function calculateRecipeMatch(
   pantryIds
 ) {
   const pantry =
-    pantryIds instanceof Set
+    pantryIds
+    instanceof Set
       ? pantryIds
       : new Set(
           pantryIds
-          ?? []
+          ??
+          []
         );
 
   const required =
@@ -964,9 +1286,11 @@ export function calculateRecipeMatch(
       : Math.round(
           (
             available.length
-            / total
+            /
+            total
           )
-          * 100
+          *
+          100
         );
 
   return {
@@ -991,7 +1315,7 @@ export function calculateRecipeMatch(
 
 
 /* =========================================================
-   RANK RECIPES
+   RANK RECIPES BY PANTRY
 ========================================================= */
 
 export function rankRecipesByPantry(
@@ -1015,9 +1339,14 @@ export function rankRecipesByPantry(
         a,
         b
       ) => {
+        /*
+         * Fully cookable recipes first.
+         */
+
         if (
           a.match.canCook
-          !== b.match.canCook
+          !==
+          b.match.canCook
         ) {
           return (
             Number(
@@ -1030,9 +1359,14 @@ export function rankRecipesByPantry(
           );
         }
 
+        /*
+         * Then strongest percentage match.
+         */
+
         if (
           a.match.percentage
-          !== b.match.percentage
+          !==
+          b.match.percentage
         ) {
           return (
             b.match.percentage
@@ -1041,10 +1375,31 @@ export function rankRecipesByPantry(
           );
         }
 
-        return (
+        /*
+         * Then fewest missing ingredients.
+         */
+
+        if (
           a.match.missingCount
-          -
+          !==
           b.match.missingCount
+        ) {
+          return (
+            a.match.missingCount
+            -
+            b.match.missingCount
+          );
+        }
+
+        /*
+         * Stable alphabetical fallback.
+         */
+
+        return (
+          a.recipe.name
+            .localeCompare(
+              b.recipe.name
+            )
         );
       }
     );
@@ -1052,7 +1407,7 @@ export function rankRecipesByPantry(
 
 
 /* =========================================================
-   FILTERS
+   CUISINE FILTER
 ========================================================= */
 
 function matchesCuisine(
@@ -1061,7 +1416,8 @@ function matchesCuisine(
 ) {
   if (
     !cuisines
-    || cuisines.size === 0
+    ||
+    cuisines.size === 0
   ) {
     return true;
   }
@@ -1072,23 +1428,27 @@ function matchesCuisine(
 }
 
 
+/* =========================================================
+   COOKING STYLE FILTER
+========================================================= */
+
 function matchesCookingStyle(
   recipe,
   cookingStyles
 ) {
   if (
     !cookingStyles
-    || cookingStyles.size === 0
+    ||
+    cookingStyles.size === 0
   ) {
     return true;
   }
 
-  return [
-    ...(
-      recipe.cookingStyles
-      ?? []
-    )
-  ].some(
+  return (
+    recipe.cookingStyles
+    ??
+    []
+  ).some(
     (style) =>
       cookingStyles.has(
         style
@@ -1097,13 +1457,18 @@ function matchesCookingStyle(
 }
 
 
+/* =========================================================
+   DIET FILTER
+========================================================= */
+
 function matchesDiet(
   recipe,
   diets
 ) {
   if (
     !diets
-    || diets.size === 0
+    ||
+    diets.size === 0
   ) {
     return true;
   }
@@ -1126,12 +1491,17 @@ function matchesDiet(
           ?.includes(
             diet
           )
-        ?? false
+        ??
+        false
       );
     }
   );
 }
 
+
+/* =========================================================
+   TIME FILTER
+========================================================= */
 
 function matchesTime(
   recipe,
@@ -1139,7 +1509,8 @@ function matchesTime(
 ) {
   if (
     !times
-    || times.size === 0
+    ||
+    times.size === 0
   ) {
     return true;
   }
@@ -1159,6 +1530,14 @@ function matchesTime(
     return true;
   }
 
+  /*
+   * If multiple time filters are selected,
+   * the broadest selected limit wins.
+   *
+   * Example:
+   * <= 15 and <= 30 means <= 30.
+   */
+
   const largestLimit =
     Math.max(
       ...limits
@@ -1166,10 +1545,15 @@ function matchesTime(
 
   return (
     recipe.timeMinutes
-    <= largestLimit
+    <=
+    largestLimit
   );
 }
 
+
+/* =========================================================
+   SERVINGS FILTER
+========================================================= */
 
 function matchesServings(
   recipe,
@@ -1177,13 +1561,24 @@ function matchesServings(
 ) {
   if (
     !servings
-    || servings.size === 0
+    ||
+    servings.size === 0
   ) {
     return true;
   }
 
-  return servings.has(
-    recipe.servings
+  const categories =
+    recipe.servingCategories
+    ??
+    [];
+
+  return [
+    ...servings
+  ].some(
+    (selectedCategory) =>
+      categories.includes(
+        selectedCategory
+      )
   );
 }
 
@@ -1234,8 +1629,11 @@ export function pickRandomRecipe(
   recipes
 ) {
   if (
-    !recipes
-    || recipes.length === 0
+    !Array.isArray(
+      recipes
+    )
+    ||
+    recipes.length === 0
   ) {
     return null;
   }
@@ -1243,7 +1641,8 @@ export function pickRandomRecipe(
   const index =
     Math.floor(
       Math.random()
-      * recipes.length
+      *
+      recipes.length
     );
 
   return recipes[index];
