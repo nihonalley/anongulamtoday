@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="robots" content="noindex, nofollow">
+
+    <title>
+        Ingredient Manager · Anong Ulam Today?
+    </title>
+
+    <link rel="stylesheet" href="/css/master.css">
+
+    <link rel="stylesheet" href="/css/responsive.css">
+
+</head>
+
+
+<body>
+
+
+    <header class="site-header">
+
+        <div class="container site-header__inner">
+
+            <a class="icon-button" href="/" aria-label="Back to Anong Ulam Today">
+                ←
+            </a>
+
+
+            <span class="site-title">
+                Ingredient Manager
+            </span>
+
+
+            <span class="icon-button" aria-hidden="true">
+                🧺
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <main class="site-main">
+
+        <div class="container ingredient-admin">
+
+
+            <section class="ingredient-admin__intro">
+
+                <p class="ingredient-admin__eyebrow">
+                    ADMIN TOOL
+                </p>
+
+                <h1>
+                    Ingredient Manager
+                </h1>
+
+                <p>
+                    Review new ingredients and safely
+                    maintain the shared ingredient database.
+                </p>
+
+            </section>
+
+
+            <!-- =========================
+           AUTH
+      ========================== -->
+
+            <section class="ingredient-admin-card" id="authCard">
+
+                <h2>
+                    Unlock database editing
+                </h2>
+
+                <p>
+                    Enter your admin token.
+                    It stays only in this browser tab.
+                </p>
+
+
+                <form id="authForm">
+
+                    <label class="ingredient-admin-field">
+
+                        <span>
+                            Admin token
+                        </span>
+
+                        <input id="adminToken" type="password" autocomplete="off" required>
+
+                    </label>
+
+
+                    <button class="btn" type="submit">
+                        Unlock
+                    </button>
+
+                </form>
+
+            </section>
+
+
+            <!-- =========================
+           MANAGER
+      ========================== -->
+
+            <section id="managerArea" hidden>
+
+
+                <div class="ingredient-admin-toolbar">
+
+                    <div>
+
+                        <h2>
+                            Ingredients
+                        </h2>
+
+                        <p id="ingredientCount">
+                            Loading…
+                        </p>
+
+                    </div>
+
+
+                    <button class="btn" id="addIngredientButton" type="button">
+                        + Add Ingredient
+                    </button>
+
+                </div>
+
+
+                <div class="ingredient-admin-search">
+
+                    <input id="ingredientSearch" type="search" placeholder="Search ingredients…">
+
+                </div>
+
+
+                <div class="ingredient-admin-list" id="ingredientList">
+                </div>
+
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================
+       FLOATING EDITOR
+  ========================== -->
+
+    <div class="ingredient-editor-backdrop" id="ingredientEditorBackdrop" hidden>
+
+        <section class="ingredient-editor-card" role="dialog" aria-modal="true" aria-labelledby="ingredientEditorTitle">
+
+            <div class="ingredient-editor-card__top">
+
+                <div>
+
+                    <p class="ingredient-admin__eyebrow" id="ingredientEditorEyebrow">
+                        NEW INGREDIENT
+                    </p>
+
+                    <h2 id="ingredientEditorTitle">
+                        Add Ingredient
+                    </h2>
+
+                </div>
+
+
+                <button class="icon-button" id="closeIngredientEditor" type="button" aria-label="Close">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="ingredientForm">
+
+
+                <label class="ingredient-admin-field">
+
+                    <span>
+                        Ingredient ID
+                    </span>
+
+                    <input id="ingredientId" type="text" placeholder="lobster" required>
+
+                    <small>
+                        Lowercase identifier used by recipes.
+                    </small>
+
+                </label>
+
+
+                <label class="ingredient-admin-field">
+
+                    <span>
+                        Display name
+                    </span>
+
+                    <input id="ingredientName" type="text" placeholder="Lobster" required>
+
+                </label>
+
+
+                <label class="ingredient-admin-field">
+
+                    <span>
+                        Category
+                    </span>
+
+                    <select id="ingredientCategory" required>
+                    </select>
+
+                </label>
+
+
+                <label class="ingredient-admin-field">
+
+                    <span>
+                        Aliases
+                    </span>
+
+                    <input id="ingredientAliases" type="text" placeholder="lobsters, rock lobster">
+
+                    <small>
+                        Separate aliases with commas.
+                    </small>
+
+                </label>
+
+
+                <div class="ingredient-editor-message" id="ingredientEditorMessage" hidden>
+                </div>
+
+
+                <div class="ingredient-editor-actions">
+
+                    <button class="btn ingredient-delete-button" id="deleteIngredientButton" type="button" hidden>
+                        Delete
+                    </button>
+
+
+                    <span class="ingredient-editor-actions__spacer">
+                    </span>
+
+
+                    <button class="btn ingredient-editor-cancel" id="cancelIngredientEditor" type="button">
+                        Cancel
+                    </button>
+
+
+                    <button class="btn" type="submit" id="saveIngredientButton">
+                        Save Ingredient
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </section>
+
+    </div>
+
+    <!-- =========================
+     DELETE CONFIRMATION
+========================== -->
+
+    <div class="ingredient-editor-backdrop" id="deleteIngredientBackdrop" hidden>
+
+        <section class="
+      ingredient-editor-card
+      ingredient-delete-card
+    " role="dialog" aria-modal="true">
+
+            <div class="ingredient-delete-icon" id="deleteIngredientIcon">
+                🗑️
+            </div>
+
+
+            <p class="ingredient-admin__eyebrow">
+                DANGER ZONE
+            </p>
+
+
+            <h2 id="deleteIngredientTitle">
+                Delete Ingredient?
+            </h2>
+
+
+            <p class="ingredient-delete-message" id="deleteIngredientMessage">
+            </p>
+
+
+            <div class="ingredient-delete-usage" id="deleteIngredientUsage" hidden>
+            </div>
+
+
+            <div class="ingredient-editor-actions">
+
+                <button class="btn ingredient-editor-cancel" id="cancelDeleteIngredient" type="button">
+                    Nope, Keep It
+                </button>
+
+
+                <button class="
+          btn
+          ingredient-delete-confirm
+        " id="confirmDeleteIngredient" type="button">
+                    Yes, Delete
+                </button>
+
+            </div>
+
+        </section>
+
+    </div>
+    
+    <script type="module" src="/js/admin-ingredients.js"></script>
+
+
+</body>
+
+</html>
