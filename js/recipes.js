@@ -60,6 +60,148 @@ export const RECIPE_SCHEMA = {
 
 
 /* =========================================================
+   MAIN INGREDIENT CLASSIFICATION
+========================================================= */
+
+/*
+ * Recipes do NOT need to store a separate mainIngredient
+ * field.
+ *
+ * We derive the category automatically from the existing
+ * ingredient IDs.
+ *
+ * Example:
+ *
+ * ingredients:
+ *   chicken
+ *   soy-sauce
+ *   garlic
+ *
+ * automatically becomes:
+ *
+ * Main Ingredient = Chicken
+ */
+
+const MAIN_INGREDIENT_GROUPS = {
+  chicken: [
+    "chicken",
+    "chicken-breast",
+    "chicken-thigh",
+    "chicken-wings",
+    "chicken-leg"
+  ],
+
+  pork: [
+    "pork",
+    "pork-belly",
+    "pork-chop",
+    "pork-ribs",
+    "ground-pork",
+    "bacon",
+    "ham"
+  ],
+
+  beef: [
+    "beef",
+    "ground-beef",
+    "beef-steak",
+    "beef-ribs",
+    "beef-brisket"
+  ],
+
+  fish: [
+    "fish",
+    "salmon",
+    "tuna",
+    "tilapia",
+    "bangus",
+    "milkfish",
+    "cod",
+    "mackerel",
+    "sardines"
+  ],
+
+  seafood: [
+    "shrimp",
+    "prawn",
+    "prawns",
+    "crab",
+    "squid",
+    "mussels",
+    "clams",
+    "scallops",
+    "lobster",
+    "octopus"
+  ],
+
+  lamb: [
+    "lamb",
+    "lamb-chop",
+    "lamb-chops",
+    "ground-lamb"
+  ],
+
+  tofu: [
+    "tofu"
+  ],
+
+  egg: [
+    "egg",
+    "eggs"
+  ]
+};
+
+
+/*
+ * These can qualify a recipe as a Vegetable main dish
+ * ONLY when the recipe does not contain one of the
+ * protein categories above.
+ *
+ * Onion, garlic, ginger, herbs, etc. are deliberately
+ * excluded because they are commonly aromatics rather
+ * than the main ingredient.
+ */
+
+const VEGETABLE_MAIN_INGREDIENTS =
+  new Set([
+    "ampalaya",
+    "bitter-melon",
+    "broccoli",
+    "cauliflower",
+    "cabbage",
+    "pechay",
+    "bok-choy",
+    "kangkong",
+    "spinach",
+    "eggplant",
+    "talong",
+    "okra",
+    "squash",
+    "kalabasa",
+    "zucchini",
+    "carrot",
+    "carrots",
+    "green-beans",
+    "sitaw",
+    "string-beans",
+    "mushroom",
+    "mushrooms",
+    "potato",
+    "potatoes",
+    "sweet-potato",
+    "kamote",
+    "corn",
+    "sayote",
+    "chayote",
+    "radish",
+    "labanos",
+    "bean-sprouts",
+    "togue",
+    "bell-pepper"
+  ]);
+
+
+/* =========================================================
    BASIC HELPERS
 ========================================================= */
 
@@ -221,7 +363,9 @@ function normalizeIngredient(
     ||
     rawQuantity === ""
       ? null
-      : Number(rawQuantity);
+      : Number(
+          rawQuantity
+        );
 
   return {
     id:
@@ -426,8 +570,7 @@ export function normalizeRecipe(
       Array.isArray(
         recipe.flexibleIngredients
       )
-        ? recipe
-            .flexibleIngredients
+        ? recipe.flexibleIngredients
             .map(
               normalizeFlexibleIngredient
             )
@@ -639,11 +782,6 @@ function validateSource(
       `${recipeId}: source URL is invalid.`
     );
   }
-
-  /*
-   * Web recipes must always retain
-   * the original source URL.
-   */
 
   if (
     source.type === "web"
@@ -1182,7 +1320,7 @@ export function clearRecipeCache() {
 
 
 /* =========================================================
-   INGREDIENT REQUIREMENTS
+   REQUIRED INGREDIENTS
 ========================================================= */
 
 export function getRequiredIngredients(
@@ -1198,6 +1336,106 @@ export function getRequiredIngredients(
     ??
     []
   );
+}
+
+
+/* =========================================================
+   DERIVE MAIN INGREDIENTS
+========================================================= */
+
+/*
+ * This is intentionally derived rather than stored.
+ *
+ * A recipe can belong to more than one category.
+ *
+ * Example:
+ * shrimp + fish
+ * => Fish AND Seafood
+ *
+ * Vegetable is treated differently:
+ * it is only assigned when there is no recognized
+ * animal/tofu/egg main category.
+ */
+
+export function getRecipeMainIngredients(
+  recipe
+) {
+  const ingredientIds =
+    new Set(
+      (
+        recipe.ingredients
+        ??
+        []
+      )
+        .map(
+          (ingredient) =>
+            ingredient.id
+              ?.trim()
+              .toLowerCase()
+        )
+        .filter(Boolean)
+    );
+
+  const categories =
+    new Set();
+
+
+  Object.entries(
+    MAIN_INGREDIENT_GROUPS
+  ).forEach(
+    ([
+      category,
+      knownIngredients
+    ]) => {
+      const found =
+        knownIngredients.some(
+          (ingredientId) =>
+            ingredientIds.has(
+              ingredientId
+            )
+        );
+
+      if (found) {
+        categories.add(
+          category
+        );
+      }
+    }
+  );
+
+
+  /*
+   * Only classify as Vegetable when
+   * there is no recognized main protein.
+   */
+
+  if (
+    categories.size === 0
+  ) {
+    const hasMainVegetable =
+      [
+        ...ingredientIds
+      ].some(
+        (ingredientId) =>
+          VEGETABLE_MAIN_INGREDIENTS
+            .has(
+              ingredientId
+            )
+      );
+
+    if (
+      hasMainVegetable
+    ) {
+      categories.add(
+        "vegetable"
+      );
+    }
+  }
+
+
+  return [
+    ...categories
+  ];
 }
 
 
@@ -1339,10 +1577,6 @@ export function rankRecipesByPantry(
         a,
         b
       ) => {
-        /*
-         * Fully cookable recipes first.
-         */
-
         if (
           a.match.canCook
           !==
@@ -1359,10 +1593,6 @@ export function rankRecipesByPantry(
           );
         }
 
-        /*
-         * Then strongest percentage match.
-         */
-
         if (
           a.match.percentage
           !==
@@ -1375,10 +1605,6 @@ export function rankRecipesByPantry(
           );
         }
 
-        /*
-         * Then fewest missing ingredients.
-         */
-
         if (
           a.match.missingCount
           !==
@@ -1390,10 +1616,6 @@ export function rankRecipesByPantry(
             b.match.missingCount
           );
         }
-
-        /*
-         * Stable alphabetical fallback.
-         */
 
         return (
           a.recipe.name
@@ -1425,6 +1647,45 @@ function matchesCuisine(
   return cuisines.has(
     recipe.cuisine
   );
+}
+
+
+/* =========================================================
+   MAIN INGREDIENT FILTER
+========================================================= */
+
+function matchesMainIngredient(
+  recipe,
+  selectedMainIngredients
+) {
+  if (
+    !selectedMainIngredients
+    ||
+    selectedMainIngredients.size === 0
+  ) {
+    return true;
+  }
+
+  const recipeMainIngredients =
+    getRecipeMainIngredients(
+      recipe
+    );
+
+  /*
+   * OR logic within the Main Ingredient group.
+   *
+   * Chicken + Beef means:
+   * Chicken OR Beef.
+   */
+
+  return recipeMainIngredients
+    .some(
+      (category) =>
+        selectedMainIngredients
+          .has(
+            category
+          )
+    );
 }
 
 
@@ -1530,14 +1791,6 @@ function matchesTime(
     return true;
   }
 
-  /*
-   * If multiple time filters are selected,
-   * the broadest selected limit wins.
-   *
-   * Example:
-   * <= 15 and <= 30 means <= 30.
-   */
-
   const largestLimit =
     Math.max(
       ...limits
@@ -1596,6 +1849,11 @@ export function filterRecipes(
       matchesCuisine(
         recipe,
         filters.cuisine
+      )
+      &&
+      matchesMainIngredient(
+        recipe,
+        filters.mainIngredient
       )
       &&
       matchesCookingStyle(

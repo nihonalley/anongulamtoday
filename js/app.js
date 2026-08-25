@@ -101,6 +101,35 @@ const FILTER_LABELS = {
       "Mediterranean"
   },
 
+  mainIngredient: {
+    chicken:
+      "Chicken",
+
+    pork:
+      "Pork",
+
+    beef:
+      "Beef",
+
+    fish:
+      "Fish",
+
+    seafood:
+      "Seafood",
+
+    lamb:
+      "Lamb",
+
+    vegetable:
+      "Vegetable",
+
+    tofu:
+      "Tofu",
+
+    egg:
+      "Egg"
+  },
+
   cookingStyle: {
     fried:
       "Fried",
@@ -191,6 +220,9 @@ const state = {
     new Set(),
 
   filters: {
+    mainIngredient:
+      new Set(),
+
     cuisine:
       new Set(),
 
@@ -500,23 +532,23 @@ function renderActiveFilters() {
           <span class="active-filter-chip">
 
             ${escapeHtml(
-              filter.label
-            )}
+          filter.label
+        )}
 
             <button
               type="button"
 
               data-remove-filter-group="${escapeHtml(
-                filter.group
-              )}"
+          filter.group
+        )}"
 
               data-remove-filter-value="${escapeHtml(
-                filter.value
-              )}"
+          filter.value
+        )}"
 
               aria-label="Remove ${escapeHtml(
-                filter.label
-              )}"
+          filter.label
+        )}"
             >
               ×
             </button>
@@ -690,7 +722,7 @@ function getRecipeServingCount(
 ) {
   const stored =
     state.servingsByRecipe[
-      recipe.id
+    recipe.id
     ];
 
   if (
@@ -777,7 +809,7 @@ function getServingLabel(
 
   const preset =
     SERVING_PRESETS[
-      category
+    category
     ];
 
   if (!preset) {
@@ -819,8 +851,8 @@ function createServingControl(
 
         <small>
           ${getServingLabel(
-            servings
-          )}
+    servings
+  )}
         </small>
       </div>
 
@@ -834,16 +866,15 @@ function createServingControl(
           data-serving-change="-1"
 
           data-serving-recipe="${escapeHtml(
-            recipe.id
-          )}"
+    recipe.id
+  )}"
 
           aria-label="Decrease servings"
 
-          ${
-            minusDisabled
-              ? "disabled"
-              : ""
-          }
+          ${minusDisabled
+      ? "disabled"
+      : ""
+    }
         >
           −
         </button>
@@ -855,11 +886,10 @@ function createServingControl(
           </strong>
 
           <small>
-            ${
-              servings === 1
-                ? "person"
-                : "people"
-            }
+            ${servings === 1
+      ? "person"
+      : "people"
+    }
           </small>
 
         </div>
@@ -872,16 +902,15 @@ function createServingControl(
           data-serving-change="1"
 
           data-serving-recipe="${escapeHtml(
-            recipe.id
-          )}"
+      recipe.id
+    )}"
 
           aria-label="Increase servings"
 
-          ${
-            plusDisabled
-              ? "disabled"
-              : ""
-          }
+          ${plusDisabled
+      ? "disabled"
+      : ""
+    }
         >
           +
         </button>
@@ -929,11 +958,10 @@ function createIngredientList(
 
         <small>
           For ${targetServings}
-          ${
-            targetServings === 1
-              ? "person"
-              : "people"
-          }
+          ${targetServings === 1
+      ? "person"
+      : "people"
+    }
         </small>
 
       </div>
@@ -941,27 +969,27 @@ function createIngredientList(
       <ul class="recipe-detail-list">
 
         ${scaledIngredients
-          .map(
-            (ingredient) => {
-              const substitutes =
-                ingredient.substitutes
-                ?? [];
+      .map(
+        (ingredient) => {
+          const substitutes =
+            ingredient.substitutes
+            ?? [];
 
-              const matchInfo =
-                getIngredientMatchType(
-                  ingredient
-                );
+          const matchInfo =
+            getIngredientMatchType(
+              ingredient
+            );
 
-              let pantryStatus = "";
+          let pantryStatus = "";
 
-              if (
-                state.pantry.size > 0
-              ) {
-                if (
-                  matchInfo.type
-                  === "available"
-                ) {
-                  pantryStatus = `
+          if (
+            state.pantry.size > 0
+          ) {
+            if (
+              matchInfo.type
+              === "available"
+            ) {
+              pantryStatus = `
                     <small
                       class="
                         ingredient-status
@@ -971,13 +999,13 @@ function createIngredientList(
                       ✓ You have this
                     </small>
                   `;
-                }
+            }
 
-                if (
-                  matchInfo.type
-                  === "substitute"
-                ) {
-                  pantryStatus = `
+            if (
+              matchInfo.type
+              === "substitute"
+            ) {
+              pantryStatus = `
                     <small
                       class="
                         ingredient-status
@@ -985,19 +1013,19 @@ function createIngredientList(
                       "
                     >
                       ✓ You have ${escapeHtml(
-                        ingredientIdToLabel(
-                          matchInfo.substitute
-                        )
-                      )} as an alternative
+                ingredientIdToLabel(
+                  matchInfo.substitute
+                )
+              )} as an alternative
                     </small>
                   `;
-                }
+            }
 
-                if (
-                  matchInfo.type
-                  === "missing"
-                ) {
-                  pantryStatus = `
+            if (
+              matchInfo.type
+              === "missing"
+            ) {
+              pantryStatus = `
                     <small
                       class="
                         ingredient-status
@@ -1007,41 +1035,41 @@ function createIngredientList(
                       Missing
                     </small>
                   `;
-                }
-              }
+            }
+          }
 
-              const substituteText =
-                substitutes.length > 0
-                  ? `
+          const substituteText =
+            substitutes.length > 0
+              ? `
                     <small class="ingredient-alternative">
                       Alternative:
                       ${substitutes
-                        .map(
-                          ingredientIdToLabel
-                        )
-                        .join(", ")}
+                .map(
+                  ingredientIdToLabel
+                )
+                .join(", ")}
                     </small>
                   `
-                  : "";
+              : "";
 
-              return `
+          return `
                 <li>
 
                   <div class="recipe-ingredient-row">
 
                     <strong>
                       ${escapeHtml(
-                        ingredientIdToLabel(
-                          ingredient.id
-                        )
-                      )}
+            ingredientIdToLabel(
+              ingredient.id
+            )
+          )}
                     </strong>
 
                     <span class="recipe-ingredient-amount">
                       ${escapeHtml(
-                        ingredient.displayAmount
-                        || ""
-                      )}
+            ingredient.displayAmount
+            || ""
+          )}
                     </span>
 
                   </div>
@@ -1052,9 +1080,9 @@ function createIngredientList(
 
                 </li>
               `;
-            }
-          )
-          .join("")}
+        }
+      )
+      .join("")}
 
       </ul>
 
@@ -1082,24 +1110,24 @@ function createFlexibleIngredients(
     <div class="recipe-flexible-note">
 
       ${recipe.flexibleIngredients
-        .map(
-          (item) => `
+      .map(
+        (item) => `
             <p>
 
               <strong>
                 ${escapeHtml(
-                  item.label
-                )}:
+          item.label
+        )}:
               </strong>
 
               ${escapeHtml(
-                item.note
-              )}
+          item.note
+        )}
 
             </p>
           `
-        )
-        .join("")}
+      )
+      .join("")}
 
     </div>
   `;
@@ -1130,16 +1158,16 @@ function createSteps(
       <ol class="recipe-step-list">
 
         ${recipe.steps
-          .map(
-            (step) => `
+      .map(
+        (step) => `
               <li>
                 ${escapeHtml(
-                  step
-                )}
+          step
+        )}
               </li>
             `
-          )
-          .join("")}
+      )
+      .join("")}
 
       </ol>
 
@@ -1166,16 +1194,16 @@ function createNotes(
     <div class="recipe-notes">
 
       ${recipe.notes
-        .map(
-          (note) => `
+      .map(
+        (note) => `
             <p>
               💡 ${escapeHtml(
-                note
-              )}
+          note
+        )}
             </p>
           `
-        )
-        .join("")}
+      )
+      .join("")}
 
     </div>
   `;
@@ -1209,8 +1237,8 @@ function createRecipeSource(
           Recipe by
           <strong>
             ${escapeHtml(
-              source.name
-            )}
+      source.name
+    )}
           </strong>
         </span>
       </div>
@@ -1233,15 +1261,15 @@ function createRecipeSource(
           Source:
           <strong>
             ${escapeHtml(
-              source.name
-            )}
+      source.name
+    )}
           </strong>
         </span>
 
         <a
           href="${escapeHtml(
-            source.url
-          )}"
+      source.url
+    )}"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -1258,8 +1286,8 @@ function createRecipeSource(
         Source:
         <strong>
           ${escapeHtml(
-            source.name
-          )}
+    source.name
+  )}
         </strong>
       </span>
     </div>
@@ -1289,34 +1317,34 @@ function createRecipeDetails(
 
       <p class="recipe-card__description">
         ${escapeHtml(
-          recipe.description
-          ?? ""
-        )}
+    recipe.description
+    ?? ""
+  )}
       </p>
 
       ${createServingControl(
-        recipe
-      )}
+    recipe
+  )}
 
       ${createIngredientList(
-        recipe
-      )}
+    recipe
+  )}
 
       ${createFlexibleIngredients(
-        recipe
-      )}
+    recipe
+  )}
 
       ${createSteps(
-        recipe
-      )}
+    recipe
+  )}
 
       ${createNotes(
-        recipe
-      )}
+    recipe
+  )}
 
       ${createRecipeSource(
-        recipe
-      )}
+    recipe
+  )}
 
     </div>
   `;
@@ -1433,16 +1461,15 @@ function createRecipeCard(
       class="
         recipe-card
         recipe-card--dynamic
-        ${
-          surprise
-            ? "recipe-card--surprise"
-            : ""
-        }
+        ${surprise
+      ? "recipe-card--surprise"
+      : ""
+    }
       "
 
       data-recipe-id="${escapeHtml(
-        recipe.id
-      )}"
+      recipe.id
+    )}"
     >
 
       <div class="recipe-card__image">
@@ -1454,23 +1481,22 @@ function createRecipeCard(
           ${recipe.emoji ?? "🍽️"}
         </span>
 
-        ${
-          surprise
-            ? `
+        ${surprise
+      ? `
               <span class="recipe-surprise-badge">
                 🎲 Surprise Pick
               </span>
             `
-            : ""
-        }
+      : ""
+    }
 
         <button
           class="recipe-card__favorite"
           type="button"
 
           aria-label="Add ${escapeHtml(
-            recipe.name
-          )} to favorites"
+      recipe.name
+    )} to favorites"
         >
           ♡
         </button>
@@ -1481,8 +1507,8 @@ function createRecipeCard(
 
         <h3 class="recipe-card__title">
           ${escapeHtml(
-            recipe.name
-          )}
+      recipe.name
+    )}
         </h3>
 
         <div class="recipe-card__meta">
@@ -1493,25 +1519,24 @@ function createRecipeCard(
 
           <span>
             ${escapeHtml(
-              recipe.difficulty
-              ?? "Easy"
-            )}
+      recipe.difficulty
+      ?? "Easy"
+    )}
           </span>
 
           <span>
             🍽 ${recipe.baseServings}
-            ${
-              recipe.baseServings === 1
-                ? "serving"
-                : "servings"
-            }
+            ${recipe.baseServings === 1
+      ? "serving"
+      : "servings"
+    }
           </span>
 
         </div>
 
         ${createSurpriseModeLabel(
-          match
-        )}
+      match
+    )}
 
         <div class="recipe-match-row">
 
@@ -1522,8 +1547,8 @@ function createRecipeCard(
             "
           >
             ${escapeHtml(
-              status.label
-            )}
+      status.label
+    )}
           </span>
 
           <span class="recipe-match-count">
@@ -1532,37 +1557,35 @@ function createRecipeCard(
 
         </div>
 
-        ${
-          match.missingCount > 0
-            ? `
+        ${match.missingCount > 0
+      ? `
               <div class="recipe-missing-summary">
                 Missing:
                 ${match.missing
-                  .map(
-                    (ingredient) =>
-                      escapeHtml(
-                        ingredientIdToLabel(
-                          ingredient.id
-                        )
-                      )
-                  )
-                  .join(", ")}
+        .map(
+          (ingredient) =>
+            escapeHtml(
+              ingredientIdToLabel(
+                ingredient.id
+              )
+            )
+        )
+        .join(", ")}
               </div>
             `
-            : ""
-        }
+      : ""
+    }
 
         <div class="recipe-card__tags">
 
           <span class="recipe-card__tag">
             ${escapeHtml(
-              cuisine
-            )}
+      cuisine
+    )}
           </span>
 
-          ${
-            recipe.origin
-              ? `
+          ${recipe.origin
+      ? `
                 <span
                   class="
                     recipe-card__tag
@@ -1570,17 +1593,16 @@ function createRecipeCard(
                   "
                 >
                   ${escapeHtml(
-                    recipe.origin
-                  )}
+        recipe.origin
+      )}
                 </span>
               `
-              : ""
-          }
+      : ""
+    }
 
-          ${
-            recipe.cookingStyles
-              ?.map(
-                (style) => `
+          ${recipe.cookingStyles
+      ?.map(
+        (style) => `
                   <span
                     class="
                       recipe-card__tag
@@ -1588,17 +1610,17 @@ function createRecipeCard(
                     "
                   >
                     ${escapeHtml(
-                      getFilterLabel(
-                        "cookingStyle",
-                        style
-                      )
-                    )}
+          getFilterLabel(
+            "cookingStyle",
+            style
+          )
+        )}
                   </span>
                 `
-              )
-              .join("")
-            ?? ""
-          }
+      )
+      .join("")
+    ?? ""
+    }
 
         </div>
 
@@ -1613,19 +1635,17 @@ function createRecipeCard(
             type="button"
 
             data-view-recipe="${escapeHtml(
-              recipe.id
-            )}"
+      recipe.id
+    )}"
           >
-            ${
-              expanded
-                ? "Hide Recipe"
-                : "View Recipe"
-            }
+            ${expanded
+      ? "Hide Recipe"
+      : "View Recipe"
+    }
           </button>
 
-          ${
-            surprise
-              ? `
+          ${surprise
+      ? `
                 <button
                   class="recipe-card__action"
                   type="button"
@@ -1634,14 +1654,14 @@ function createRecipeCard(
                   🎲 Pick Again
                 </button>
               `
-              : ""
-          }
+      : ""
+    }
 
         </div>
 
         ${createRecipeDetails(
-          recipe
-        )}
+      recipe
+    )}
 
       </div>
 
@@ -1949,7 +1969,7 @@ function generateSurpriseRecipe() {
   if (
     !Number.isFinite(
       state.servingsByRecipe[
-        recipe.id
+      recipe.id
       ]
     )
   ) {
@@ -2411,7 +2431,7 @@ async function loadData() {
         if (
           !Number.isFinite(
             state.servingsByRecipe[
-              recipe.id
+            recipe.id
             ]
           )
         ) {
