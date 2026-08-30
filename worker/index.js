@@ -997,6 +997,360 @@ async function deleteIngredient(
     });
 }
 
+/* =========================================================
+   RECIPE QUERIES
+========================================================= */
+
+async function getRecipes(
+    env
+) {
+    const {
+        results: recipeRows
+    } =
+        await env.db
+            .prepare(`
+        SELECT
+          id,
+          name,
+          description,
+          emoji,
+          cuisine,
+          origin,
+          time_minutes,
+          difficulty,
+          base_servings,
+          spicy,
+          added_by,
+          source_type,
+          source_name,
+          source_url,
+          source_retrieved_at
+
+        FROM recipes
+
+        ORDER BY name
+      `)
+            .all();
+
+
+    const recipes = [];
+
+
+    for (
+        const row
+        of recipeRows ?? []
+    ) {
+        const [
+            cookingStylesResult,
+            dietResult,
+            servingResult,
+            ingredientsResult,
+            flexibleResult,
+            stepsResult,
+            notesResult
+        ] =
+            await Promise.all([
+
+                env.db
+                    .prepare(`
+              SELECT cooking_style
+              FROM recipe_cooking_styles
+              WHERE recipe_id = ?1
+              ORDER BY cooking_style
+            `)
+                    .bind(row.id)
+                    .all(),
+
+
+                env.db
+                    .prepare(`
+              SELECT diet_tag
+              FROM recipe_diet_tags
+              WHERE recipe_id = ?1
+              ORDER BY diet_tag
+            `)
+                    .bind(row.id)
+                    .all(),
+
+
+                env.db
+                    .prepare(`
+              SELECT serving_category
+              FROM recipe_serving_categories
+              WHERE recipe_id = ?1
+              ORDER BY
+                CASE serving_category
+                  WHEN 'one' THEN 1
+                  WHEN 'couple' THEN 2
+                  WHEN 'family' THEN 3
+                  WHEN 'party' THEN 4
+                  ELSE 99
+                END
+            `)
+                    .bind(row.id)
+                    .all(),
+
+
+                env.db
+                    .prepare(`
+              SELECT
+                id,
+                ingredient_id,
+                quantity,
+                unit,
+                amount_text,
+                scalable,
+                required,
+                sort_order
+
+              FROM recipe_ingredients
+
+              WHERE recipe_id = ?1
+
+              ORDER BY
+                sort_order,
+                id
+            `)
+                    .bind(row.id)
+                    .all(),
+
+
+                env.db
+                    .prepare(`
+              SELECT
+                label,
+                note
+
+              FROM recipe_flexible_ingredients
+
+              WHERE recipe_id = ?1
+
+              ORDER BY
+                sort_order,
+                id
+            `)
+                    .bind(row.id)
+                    .all(),
+
+
+                env.db
+                    .prepare(`
+              SELECT step_text
+
+              FROM recipe_steps
+
+              WHERE recipe_id = ?1
+
+              ORDER BY
+                sort_order,
+                id
+            `)
+                    .bind(row.id)
+                    .all(),
+
+
+                env.db
+                    .prepare(`
+              SELECT note_text
+
+              FROM recipe_notes
+
+              WHERE recipe_id = ?1
+
+              ORDER BY
+                sort_order,
+                id
+            `)
+                    .bind(row.id)
+                    .all()
+            ]);
+
+
+        const ingredients = [];
+
+
+        for (
+            const ingredientRow
+            of ingredientsResult.results ?? []
+        ) {
+            const {
+                results: substituteRows
+            } =
+                await env.db
+                    .prepare(`
+              SELECT substitute_ingredient_id
+
+              FROM recipe_ingredient_substitutes
+
+              WHERE recipe_ingredient_id = ?1
+
+              ORDER BY substitute_ingredient_id
+            `)
+                    .bind(
+                        ingredientRow.id
+                    )
+                    .all();
+
+
+            ingredients.push({
+                id:
+                    ingredientRow
+                        .ingredient_id,
+
+                quantity:
+                    ingredientRow
+                        .quantity,
+
+                unit:
+                    ingredientRow
+                        .unit,
+
+                amountText:
+                    ingredientRow
+                        .amount_text,
+
+                scalable:
+                    Boolean(
+                        ingredientRow
+                            .scalable
+                    ),
+
+                required:
+                    Boolean(
+                        ingredientRow
+                            .required
+                    ),
+
+                substitutes:
+                    (
+                        substituteRows
+                        ?? []
+                    ).map(
+                        (substitute) =>
+                            substitute
+                                .substitute_ingredient_id
+                    )
+            });
+        }
+
+
+        recipes.push({
+            id:
+                row.id,
+
+            name:
+                row.name,
+
+            description:
+                row.description,
+
+            emoji:
+                row.emoji,
+
+            cuisine:
+                row.cuisine,
+
+            origin:
+                row.origin,
+
+            cookingStyles:
+                (
+                    cookingStylesResult
+                        .results
+                    ?? []
+                ).map(
+                    (item) =>
+                        item.cooking_style
+                ),
+
+            diet:
+                (
+                    dietResult.results
+                    ?? []
+                ).map(
+                    (item) =>
+                        item.diet_tag
+                ),
+
+            timeMinutes:
+                row.time_minutes,
+
+            difficulty:
+                row.difficulty,
+
+            baseServings:
+                row.base_servings,
+
+            servingCategories:
+                (
+                    servingResult.results
+                    ?? []
+                ).map(
+                    (item) =>
+                        item.serving_category
+                ),
+
+            spicy:
+                Boolean(
+                    row.spicy
+                ),
+
+            ingredients,
+
+            flexibleIngredients:
+                (
+                    flexibleResult.results
+                    ?? []
+                ).map(
+                    (item) => ({
+                        label:
+                            item.label,
+
+                        note:
+                            item.note
+                    })
+                ),
+
+            steps:
+                (
+                    stepsResult.results
+                    ?? []
+                ).map(
+                    (item) =>
+                        item.step_text
+                ),
+
+            notes:
+                (
+                    notesResult.results
+                    ?? []
+                ).map(
+                    (item) =>
+                        item.note_text
+                ),
+
+            source: {
+                type:
+                    row.source_type,
+
+                name:
+                    row.source_name,
+
+                url:
+                    row.source_url,
+
+                retrievedAt:
+                    row.source_retrieved_at
+            },
+
+            addedBy:
+                row.added_by
+        });
+    }
+
+
+    return recipes;
+}
 
 /* =========================================================
    API ROUTER
@@ -1090,6 +1444,21 @@ async function handleApi(
                     env
                 )
         });
+    }
+
+    /* -------------------------
+   RECIPE LIST
+------------------------- */
+
+    if (
+        url.pathname
+        === "/api/recipes"
+        &&
+        method === "GET"
+    ) {
+        return json(
+            await getRecipes(env)
+        );
     }
 
 

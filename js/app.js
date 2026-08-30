@@ -1822,11 +1822,19 @@ function getPantrySurprisePool() {
     return [];
   }
 
+
+  /*
+   * If pantry mode is enabled
+   * but the pantry is empty,
+   * do not pretend these are pantry matches.
+   */
+
   if (
     state.pantry.size === 0
   ) {
-    return filtered;
+    return [];
   }
+
 
   const ranked =
     rankRecipesByPantry(
@@ -1834,17 +1842,40 @@ function getPantrySurprisePool() {
       state.pantry
     );
 
+
+  /*
+   * IMPORTANT:
+   *
+   * Use What I Have should never
+   * recommend a recipe that matches
+   * absolutely nothing in the pantry.
+   */
+
+  const matching =
+    ranked.filter(
+      (item) =>
+        item.match.availableCount > 0
+    );
+
+
   if (
-    ranked.length === 0
+    matching.length === 0
   ) {
     return [];
   }
 
+
+  /*
+   * Best case:
+   * recipes that can already be cooked.
+   */
+
   const ready =
-    ranked.filter(
+    matching.filter(
       (item) =>
         item.match.canCook
     );
+
 
   if (
     ready.length > 0
@@ -1855,16 +1886,23 @@ function getPantrySurprisePool() {
     );
   }
 
+
+  /*
+   * Otherwise choose from the
+   * closest pantry matches only.
+   */
+
   const minimumMissing =
     Math.min(
-      ...ranked.map(
+      ...matching.map(
         (item) =>
           item.match
             .missingCount
       )
     );
 
-  return ranked
+
+  return matching
     .filter(
       (item) =>
         item.match

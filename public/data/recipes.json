@@ -82,7 +82,7 @@
         "substitutes": []
       },
       {
-        "id": "oil",
+        "id": "cooking-oil",
         "quantity": 1,
         "unit": "tbsp",
         "amountText": null,
@@ -292,7 +292,7 @@
         "substitutes": []
       },
       {
-        "id": "oil",
+        "id": "cooking-oil",
         "quantity": 1,
         "unit": "tbsp",
         "amountText": null,
@@ -485,7 +485,7 @@
         ]
       },
       {
-        "id": "oil",
+        "id": "cooking-oil",
         "quantity": 1,
         "unit": "tbsp",
         "amountText": null,

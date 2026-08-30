@@ -1,4 +1,7 @@
-const RECIPES_URL =
+const RECIPES_API_URL =
+  "/api/recipes";
+
+const RECIPES_FALLBACK_URL =
   "/data/recipes.json";
 
 
@@ -1239,53 +1242,93 @@ export function validateRecipeLibrary(
 
 
 /* =========================================================
-   LOAD RECIPES
+   LOAD + VALIDATE RECIPE SOURCE
 ========================================================= */
 
-export async function loadRecipes() {
-  if (
-    recipeCache
-  ) {
-    return recipeCache;
-  }
-
+async function loadRecipeSource(
+  url
+) {
   const response =
     await fetch(
-      RECIPES_URL
+      url
     );
 
   if (
     !response.ok
   ) {
     throw new Error(
-      "Unable to load recipes."
+      `Unable to load recipes from ${url}.`
     );
   }
 
-  const rawRecipes =
+
+  const payload =
     await response.json();
 
-  const normalized =
+
+  /*
+   * The D1 API currently returns the recipe array directly.
+   *
+   * This also supports a future API response shaped like:
+   *
+   * {
+   *   ok: true,
+   *   recipes: [...]
+   * }
+   */
+
+  const rawRecipes =
     Array.isArray(
+      payload
+    )
+      ? payload
+      : payload?.recipes;
+
+
+  if (
+    !Array.isArray(
       rawRecipes
     )
-      ? rawRecipes
-          .map(
-            normalizeRecipe
-          )
-          .filter(Boolean)
-      : rawRecipes;
+  ) {
+    throw new Error(
+      `Invalid recipe response from ${url}.`
+    );
+  }
+
+
+  const normalized =
+    rawRecipes
+      .map(
+        normalizeRecipe
+      )
+      .filter(Boolean);
+
+
+  /*
+   * An empty D1 database should NOT replace
+   * the working JSON recipe library.
+   */
+
+  if (
+    normalized.length === 0
+  ) {
+    throw new Error(
+      `No recipes returned from ${url}.`
+    );
+  }
+
 
   const validation =
     validateRecipeLibrary(
       normalized
     );
 
+
   if (
     !validation.valid
   ) {
     console.error(
-      "Recipe library validation failed:"
+      `Recipe validation failed for ${url}:`
     );
 
     validation.errors
@@ -1297,15 +1340,87 @@ export async function loadRecipes() {
         }
       );
 
+
     throw new Error(
-      `Recipe library contains ${validation.errors.length} validation error(s). Check the browser console.`
+      `Recipe source ${url} contains ${validation.errors.length} validation error(s).`
     );
   }
 
-  recipeCache =
-    normalized;
 
-  return recipeCache;
+  return normalized;
+}
+
+
+/* =========================================================
+   LOAD RECIPES
+========================================================= */
+
+export async function loadRecipes() {
+  if (
+    recipeCache
+  ) {
+    return recipeCache;
+  }
+
+
+  /*
+   * PRIMARY SOURCE
+   *
+   * Try the D1-backed API first.
+   */
+
+  try {
+    recipeCache =
+      await loadRecipeSource(
+        RECIPES_API_URL
+      );
+
+    console.info(
+      `Recipes loaded from D1 API: ${recipeCache.length}`
+    );
+
+    return recipeCache;
+  } catch (
+    apiError
+  ) {
+    console.warn(
+      "D1 recipe API unavailable or invalid. Falling back to JSON.",
+      apiError
+    );
+  }
+
+
+  /*
+   * SAFETY FALLBACK
+   *
+   * If the API fails, returns invalid data,
+   * or returns zero recipes, keep the app
+   * working with the static JSON library.
+   */
+
+  try {
+    recipeCache =
+      await loadRecipeSource(
+        RECIPES_FALLBACK_URL
+      );
+
+    console.info(
+      `Recipes loaded from JSON fallback: ${recipeCache.length}`
+    );
+
+    return recipeCache;
+  } catch (
+    fallbackError
+  ) {
+    console.error(
+      "JSON recipe fallback also failed.",
+      fallbackError
+    );
+
+    throw new Error(
+      "Unable to load the recipe library."
+    );
+  }
 }
 
 

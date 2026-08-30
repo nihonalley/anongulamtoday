@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
 
-    "db:seed:ingredients": "node scripts/seed-ingredients.js"
+    "db:seed:ingredients": "node scripts/seed-ingredients.js",
+    "db:seed:recipes": "node scripts/seed-recipes.js"
   },
 
   "repository": {
